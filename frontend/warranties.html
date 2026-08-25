@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warranty Management | Purchase &amp; Warranty Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <main class="page-container">
+        <h1>Purchase &amp; Warranty Tracker</h1>
+        <nav class="main-nav">
+            <a href="index.html" class="nav-link">Products</a>
+            <a href="purchases.html" class="nav-link">Purchases</a>
+            <a href="warranties.html" class="nav-link active">Warranties</a>
+        </nav>
+        <p>Warranty Management</p>
+        <p id="message" class="message" aria-live="polite"></p>
+
+        <section class="status-card" aria-labelledby="warranty-form-heading">
+            <h2 id="warranty-form-heading">Add or edit a warranty</h2>
+            <form id="warranty-form">
+                <input id="warranty-id" type="hidden">
+                <label>Product
+                    <select id="product-id" required>
+                        <option value="">-- Select a product --</option>
+                    </select>
+                </label>
+                <label>Start date
+                    <input id="start-date" type="date" required>
+                </label>
+                <label>Duration (in months)
+                    <input id="duration-months" type="number" min="1" max="120" required placeholder="e.g. 12, 24, 36">
+                </label>
+                <label>Warranty provider
+                    <input id="warranty-provider" required maxlength="150" placeholder="e.g. Lenovo, Samsung Care, Retailer">
+                </label>
+                <label id="status-group" style="display: none;">Status
+                    <select id="warranty-status">
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="EXPIRED">EXPIRED</option>
+                        <option value="VOID">VOID (Voided)</option>
+                    </select>
+                </label>
+                <div class="button-row">
+                    <button type="submit" id="submit-warranty-button">Save warranty</button>
+                    <button id="cancel-edit-button" type="button" class="secondary">Cancel edit</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="status-card" aria-labelledby="warranty-list-heading">
+            <div class="section-header">
+                <h2 id="warranty-list-heading">Warranty Records</h2>
+                <button id="refresh-button" type="button">Refresh list</button>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Provider</th>
+                            <th>Start Date</th>
+                            <th>Duration</th>
+                            <th>Expiry Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="warranty-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <script src="js/warranties.js"></script>
+</body>
+</html>
+

@@ -139,12 +139,19 @@ td button { margin-right: 0.4rem; }
     font-weight: 600;
 }
 
-.badge-has-receipt {
+.badge-has-receipt,
+.badge-active {
     background-color: #dcfce7;
     color: #15803d;
 }
 
-.badge-no-receipt {
+.badge-expired {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.badge-no-receipt,
+.badge-void {
     background-color: #f3f4f6;
     color: #6b7280;
 }
