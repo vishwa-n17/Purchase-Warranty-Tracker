@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management | Purchase &amp; Warranty Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <main class="page-container">
+        <h1>Purchase &amp; Warranty Tracker</h1>
+        <nav class="main-nav">
+            <a href="index.html" class="nav-link active">Products</a>
+            <a href="purchases.html" class="nav-link">Purchases</a>
+        </nav>
+        <p>Product Management</p>
+        <p id="message" class="message" aria-live="polite"></p>
+
+        <section class="status-card" aria-labelledby="product-form-heading">
+            <h2 id="product-form-heading">Add or edit a product</h2>
+            <form id="product-form">
+                <input id="product-id" type="hidden">
+                <label>Name <input id="name" required maxlength="150"></label>
+                <label>Category <input id="category" required maxlength="100"></label>
+                <label>Brand <input id="brand" maxlength="100"></label>
+                <label>Model <input id="model" maxlength="100"></label>
+                <label>Serial number <input id="serial-number" maxlength="150"></label>
+                <label>Notes <textarea id="notes"></textarea></label>
+                <div class="button-row">
+                    <button type="submit">Save product</button>
+                    <button id="cancel-edit-button" type="button" class="secondary">Cancel edit</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="status-card" aria-labelledby="product-list-heading">
+            <div class="section-header">
+                <h2 id="product-list-heading">Products</h2>
+                <button id="refresh-button" type="button">Refresh list</button>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Name</th><th>Category</th><th>Brand / Model</th><th>Serial number</th><th>Actions</th></tr></thead>
+                    <tbody id="product-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <script src="js/products.js"></script>
+</body>
+</html>
