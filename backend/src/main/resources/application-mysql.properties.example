@@ -1,0 +1,7 @@
+# Copy to application-mysql.properties (ignored by Git), then activate with:
+# mvn spring-boot:run -Dspring-boot.run.profiles=mysql
+spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/purchase_warranty_tracker}
+spring.datasource.username=${DB_USERNAME:root}
+spring.datasource.password=${DB_PASSWORD}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.hikari.connection-timeout=5000

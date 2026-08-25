@@ -1,0 +1,27 @@
+# Java / Maven
+backend/target/
+*.class
+*.log
+
+# Spring Boot
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-mysql.properties
+
+# Local Maven cache used in restricted environments
+.m2/
+
+# IDEs and editors
+.idea/
+*.iml
+.vscode/
+!/.vscode/extensions.json
+
+# Operating systems
+.DS_Store
+Thumbs.db
