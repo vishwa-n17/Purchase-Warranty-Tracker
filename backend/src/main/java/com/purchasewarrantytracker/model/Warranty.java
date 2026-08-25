@@ -2,14 +2,32 @@ package com.purchasewarrantytracker.model;
 
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+
 public class Warranty {
 
     private Long id;
+
+    @NotNull(message = "Product ID is required")
+    @Positive(message = "Product ID must be a positive number")
     private Long productId;
+
+    @NotNull(message = "Start date is required")
     private LocalDate startDate;
+
+    @NotNull(message = "Duration in months is required")
+    @Positive(message = "Duration months must be greater than zero")
     private Integer durationMonths;
+
     private LocalDate expiryDate;
+
+    @NotBlank(message = "Warranty provider is required")
+    @Size(max = 150, message = "Warranty provider must be at most 150 characters")
     private String warrantyProvider;
+
     private WarrantyStatus status;
 
     public Warranty() {
