@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@Profile("mysql")
 public class PurchaseRepository {
 
     private static final RowMapper<Purchase> PURCHASE_ROW_MAPPER = (resultSet, rowNumber) ->

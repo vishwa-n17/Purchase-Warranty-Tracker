@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-@Profile("mysql")
 public class PurchaseService {
 
     private final PurchaseRepository purchaseRepository;

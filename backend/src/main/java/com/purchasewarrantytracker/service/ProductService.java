@@ -4,13 +4,11 @@ import com.purchasewarrantytracker.exception.ProductInUseException;
 import com.purchasewarrantytracker.exception.ProductNotFoundException;
 import com.purchasewarrantytracker.model.Product;
 import com.purchasewarrantytracker.repository.ProductRepository;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@Profile("mysql")
 public class ProductService {
 
     private final ProductRepository productRepository;

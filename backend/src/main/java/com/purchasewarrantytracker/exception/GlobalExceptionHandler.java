@@ -15,7 +15,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 public class GlobalExceptionHandler {
 
     @ExceptionHandler({ProductNotFoundException.class, PurchaseNotFoundException.class,
-            ReceiptNotFoundException.class, WarrantyNotFoundException.class})
+            ReceiptNotFoundException.class, WarrantyNotFoundException.class,
+            jakarta.persistence.EntityNotFoundException.class})
     public ResponseEntity<ApiError> handleNotFound(RuntimeException exception) {
         return error(HttpStatus.NOT_FOUND, exception.getMessage());
     }

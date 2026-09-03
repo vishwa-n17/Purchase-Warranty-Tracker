@@ -22,7 +22,6 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/purchases/{purchaseId}/receipt")
 @Validated
-@Profile("mysql")
 public class ReceiptController {
 
     private final ReceiptService receiptService;

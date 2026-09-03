@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
-@Profile("mysql")
 public class ReceiptService {
 
     private final ReceiptRepository receiptRepository;

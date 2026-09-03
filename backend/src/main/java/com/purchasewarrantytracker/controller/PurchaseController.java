@@ -21,7 +21,6 @@ import java.util.List;
 
 @RestController
 @Validated
-@Profile("mysql")
 public class PurchaseController {
 
     private final PurchaseService purchaseService;

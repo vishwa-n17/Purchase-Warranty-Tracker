@@ -17,7 +17,6 @@ import com.purchasewarrantytracker.model.Warranty;
 import com.purchasewarrantytracker.model.WarrantyStatus;
 
 @Repository
-@Profile("mysql")
 public class WarrantyRepository {
 
     private static final RowMapper<Warranty> WARRANTY_ROW_MAPPER = (resultSet, rowNumber) ->

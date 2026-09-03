@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@Profile("mysql")
 public class ReceiptRepository {
 
     private static final RowMapper<Receipt> RECEIPT_ROW_MAPPER = (resultSet, rowNumber) ->

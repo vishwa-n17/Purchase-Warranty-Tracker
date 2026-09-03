@@ -23,7 +23,6 @@ import jakarta.validation.constraints.Positive;
 
 @RestController
 @Validated
-@Profile("mysql")
 public class WarrantyController {
 
     private final WarrantyService warrantyService;

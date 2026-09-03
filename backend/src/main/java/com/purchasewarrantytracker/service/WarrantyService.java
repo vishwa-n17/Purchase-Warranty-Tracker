@@ -15,7 +15,6 @@ import com.purchasewarrantytracker.repository.ProductRepository;
 import com.purchasewarrantytracker.repository.WarrantyRepository;
 
 @Service
-@Profile("mysql")
 public class WarrantyService {
 
     private final WarrantyRepository warrantyRepository;

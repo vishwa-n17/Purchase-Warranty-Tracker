@@ -5,7 +5,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@Profile("mysql")
 public class ProductRepository {
 
     private static final RowMapper<Product> PRODUCT_ROW_MAPPER = (resultSet, rowNumber) ->
