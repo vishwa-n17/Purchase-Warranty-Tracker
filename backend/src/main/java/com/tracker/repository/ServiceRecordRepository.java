@@ -9,5 +9,7 @@ import java.util.List;
 @Repository
 public interface ServiceRecordRepository extends JpaRepository<ServiceRecord, Long> {
     List<ServiceRecord> findByProductId(Long productId);
+    List<ServiceRecord> findByUserId(Long userId);
+    List<ServiceRecord> findByProductIdAndUserId(Long productId, Long userId);
 }
 

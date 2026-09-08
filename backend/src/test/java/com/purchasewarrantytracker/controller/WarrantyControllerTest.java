@@ -1,5 +1,7 @@
 package com.purchasewarrantytracker.controller;
 
+import com.purchasewarrantytracker.config.TestSecurityConfig;
+import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
 import com.purchasewarrantytracker.exception.WarrantyNotFoundException;
 import com.purchasewarrantytracker.model.Warranty;
 import com.purchasewarrantytracker.model.WarrantyStatus;
@@ -9,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -28,8 +30,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(WarrantyController.class)
-@ActiveProfiles("mysql")
+@ContextConfiguration(classes = {WarrantyController.class, GlobalExceptionHandler.class, TestSecurityConfig.class})
 class WarrantyControllerTest {
+
+    private static final long TEST_USER_ID = 1L;
 
     @Autowired
     private MockMvc mockMvc;
@@ -40,7 +44,7 @@ class WarrantyControllerTest {
     @Test
     void createReturnsCreatedWarrantyAndLocationHeader() throws Exception {
         Warranty warranty = new Warranty(1L, 1L, LocalDate.of(2026, 6, 15), 12, LocalDate.of(2027, 6, 15), "Lenovo", WarrantyStatus.ACTIVE);
-        when(warrantyService.create(any(Warranty.class))).thenReturn(warranty);
+        when(warrantyService.create(eq(TEST_USER_ID), any(Warranty.class))).thenReturn(warranty);
 
         mockMvc.perform(post("/api/warranties")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -54,7 +58,7 @@ class WarrantyControllerTest {
 
     @Test
     void getAllReturnsWarranties() throws Exception {
-        when(warrantyService.getAll()).thenReturn(List.of(
+        when(warrantyService.getAll(eq(TEST_USER_ID))).thenReturn(List.of(
                 new Warranty(1L, 1L, LocalDate.of(2026, 6, 15), 12, LocalDate.of(2027, 6, 15), "Lenovo", WarrantyStatus.ACTIVE)
         ));
 
@@ -66,7 +70,7 @@ class WarrantyControllerTest {
 
     @Test
     void getByIdReturnsWarranty() throws Exception {
-        when(warrantyService.getById(1L)).thenReturn(
+        when(warrantyService.getById(eq(TEST_USER_ID), eq(1L))).thenReturn(
                 new Warranty(1L, 1L, LocalDate.of(2026, 6, 15), 12, LocalDate.of(2027, 6, 15), "Lenovo", WarrantyStatus.ACTIVE)
         );
 
@@ -78,7 +82,7 @@ class WarrantyControllerTest {
 
     @Test
     void getByIdNotFoundReturns404() throws Exception {
-        when(warrantyService.getById(99L)).thenThrow(new WarrantyNotFoundException(99L));
+        when(warrantyService.getById(eq(TEST_USER_ID), eq(99L))).thenThrow(new WarrantyNotFoundException(99L));
 
         mockMvc.perform(get("/api/warranties/99"))
                 .andExpect(status().isNotFound())
@@ -87,11 +91,11 @@ class WarrantyControllerTest {
 
     @Test
     void getByProductIdReturnsWarranty() throws Exception {
-        when(warrantyService.getByProductId(1L)).thenReturn(
+        when(warrantyService.getByProductId(eq(TEST_USER_ID), eq(1L))).thenReturn(
                 new Warranty(1L, 1L, LocalDate.of(2026, 6, 15), 12, LocalDate.of(2027, 6, 15), "Lenovo", WarrantyStatus.ACTIVE)
         );
 
-        mockMvc.perform(get("/api/products/1/warranty"))
+        mockMvc.perform(get("/api/warranties/products/1/warranty"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.productId").value(1));
     }
@@ -99,7 +103,7 @@ class WarrantyControllerTest {
     @Test
     void updateReturnsUpdatedWarranty() throws Exception {
         Warranty updated = new Warranty(1L, 1L, LocalDate.of(2026, 6, 15), 24, LocalDate.of(2028, 6, 15), "Lenovo Premium", WarrantyStatus.ACTIVE);
-        when(warrantyService.update(eq(1L), any(Warranty.class))).thenReturn(updated);
+        when(warrantyService.update(eq(TEST_USER_ID), eq(1L), any(Warranty.class))).thenReturn(updated);
 
         mockMvc.perform(put("/api/warranties/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -111,7 +115,7 @@ class WarrantyControllerTest {
 
     @Test
     void deleteReturnsNoContent() throws Exception {
-        doNothing().when(warrantyService).delete(1L);
+        doNothing().when(warrantyService).delete(eq(TEST_USER_ID), eq(1L));
 
         mockMvc.perform(delete("/api/warranties/1"))
                 .andExpect(status().isNoContent());
@@ -126,4 +130,3 @@ class WarrantyControllerTest {
                 .andExpect(jsonPath("$.status").value(400));
     }
 }
-

@@ -1,5 +1,7 @@
 package com.purchasewarrantytracker.controller;
 
+import com.purchasewarrantytracker.config.TestSecurityConfig;
+import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
 import com.purchasewarrantytracker.exception.PurchaseNotFoundException;
 import com.purchasewarrantytracker.exception.ReceiptNotFoundException;
 import com.purchasewarrantytracker.model.Receipt;
@@ -9,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -27,8 +29,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ReceiptController.class)
-@ActiveProfiles("mysql")
+@ContextConfiguration(classes = {ReceiptController.class, GlobalExceptionHandler.class, TestSecurityConfig.class})
 class ReceiptControllerTest {
+
+    private static final long TEST_USER_ID = 1L;
 
     @Autowired
     private MockMvc mockMvc;
@@ -39,7 +43,7 @@ class ReceiptControllerTest {
     @Test
     void createReceiptReturnsCreated() throws Exception {
         Receipt receipt = new Receipt(1L, 1L, "receipts/invoice.pdf", LocalDate.of(2026, 6, 15));
-        when(receiptService.create(eq(1L), any(Receipt.class))).thenReturn(receipt);
+        when(receiptService.create(eq(TEST_USER_ID), eq(1L), any(Receipt.class))).thenReturn(receipt);
 
         mockMvc.perform(post("/api/purchases/1/receipt")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -53,7 +57,7 @@ class ReceiptControllerTest {
     @Test
     void getReceiptReturnsReceipt() throws Exception {
         Receipt receipt = new Receipt(1L, 1L, "receipts/invoice.pdf", LocalDate.of(2026, 6, 15));
-        when(receiptService.getByPurchaseId(1L)).thenReturn(receipt);
+        when(receiptService.getByPurchaseId(eq(TEST_USER_ID), eq(1L))).thenReturn(receipt);
 
         mockMvc.perform(get("/api/purchases/1/receipt"))
                 .andExpect(status().isOk())
@@ -63,7 +67,7 @@ class ReceiptControllerTest {
 
     @Test
     void getReceiptThrowsNotFoundWhenReceiptMissing() throws Exception {
-        when(receiptService.getByPurchaseId(1L)).thenThrow(new ReceiptNotFoundException(1L));
+        when(receiptService.getByPurchaseId(eq(TEST_USER_ID), eq(1L))).thenThrow(new ReceiptNotFoundException(1L));
 
         mockMvc.perform(get("/api/purchases/1/receipt"))
                 .andExpect(status().isNotFound())
@@ -72,7 +76,7 @@ class ReceiptControllerTest {
 
     @Test
     void getReceiptThrowsNotFoundWhenPurchaseMissing() throws Exception {
-        when(receiptService.getByPurchaseId(99L)).thenThrow(new PurchaseNotFoundException(99L));
+        when(receiptService.getByPurchaseId(eq(TEST_USER_ID), eq(99L))).thenThrow(new PurchaseNotFoundException(99L));
 
         mockMvc.perform(get("/api/purchases/99/receipt"))
                 .andExpect(status().isNotFound())
@@ -82,7 +86,7 @@ class ReceiptControllerTest {
     @Test
     void updateReceiptReturnsUpdatedReceipt() throws Exception {
         Receipt updated = new Receipt(1L, 1L, "receipts/updated.pdf", LocalDate.of(2026, 6, 20));
-        when(receiptService.update(eq(1L), any(Receipt.class))).thenReturn(updated);
+        when(receiptService.update(eq(TEST_USER_ID), eq(1L), any(Receipt.class))).thenReturn(updated);
 
         mockMvc.perform(put("/api/purchases/1/receipt")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,10 +97,9 @@ class ReceiptControllerTest {
 
     @Test
     void deleteReceiptReturnsNoContent() throws Exception {
-        doNothing().when(receiptService).delete(1L);
+        doNothing().when(receiptService).delete(eq(TEST_USER_ID), eq(1L));
 
         mockMvc.perform(delete("/api/purchases/1/receipt"))
                 .andExpect(status().isNoContent());
     }
 }
-

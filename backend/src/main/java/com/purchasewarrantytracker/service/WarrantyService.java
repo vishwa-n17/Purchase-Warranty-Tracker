@@ -25,62 +25,68 @@ public class WarrantyService {
         this.productRepository = productRepository;
     }
 
-    public Warranty create(Warranty warranty) {
+    public Warranty create(Long userId, Warranty warranty) {
         validateWarranty(warranty);
-        verifyProductExists(warranty.getProductId());
+        verifyProductExistsAndOwned(userId, warranty.getProductId());
 
-        if (warrantyRepository.existsByProductId(warranty.getProductId())) {
+        if (warrantyRepository.existsByProductIdAndUserId(warranty.getProductId(), userId)) {
             throw new IllegalArgumentException("A warranty already exists for product ID " + warranty.getProductId());
         }
 
         applyCalculatedFields(warranty);
+        warranty.setUserId(userId);
         return warrantyRepository.save(warranty);
     }
 
-    public List<Warranty> getAll() {
-        List<Warranty> warranties = warrantyRepository.findAll();
+    public List<Warranty> getAll(Long userId) {
+        List<Warranty> warranties = warrantyRepository.findByUserId(userId);
         warranties.forEach(this::refreshStatus);
         return warranties;
     }
 
-    public Warranty getById(long id) {
-        validateId(id);
-        Warranty warranty = warrantyRepository.findById(id)
+    public Warranty getById(Long userId, long id) {
+        Warranty warranty = warrantyRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new WarrantyNotFoundException(id));
         refreshStatus(warranty);
         return warranty;
     }
 
-    public Warranty getByProductId(long productId) {
+    public Warranty getByProductId(Long userId, long productId) {
         validateProductId(productId);
-        verifyProductExists(productId);
-        Warranty warranty = warrantyRepository.findByProductId(productId)
+        verifyProductExistsAndOwned(userId, productId);
+        Warranty warranty = warrantyRepository.findByProductIdAndUserId(productId, userId)
                 .orElseThrow(() -> new WarrantyNotFoundException("Warranty for product ID " + productId + " was not found"));
         refreshStatus(warranty);
         return warranty;
     }
 
-    public Warranty update(long id, Warranty warranty) {
+    public Warranty update(Long userId, long id, Warranty warranty) {
         validateId(id);
         validateWarranty(warranty);
-        getById(id);
-        verifyProductExists(warranty.getProductId());
+        getById(userId, id);
+        verifyProductExistsAndOwned(userId, warranty.getProductId());
 
-        Optional<Warranty> existingForProduct = warrantyRepository.findByProductId(warranty.getProductId());
+        Optional<Warranty> existingForProduct = warrantyRepository.findByProductIdAndUserId(warranty.getProductId(), userId);
         if (existingForProduct.isPresent() && !existingForProduct.get().getId().equals(id)) {
             throw new IllegalArgumentException("A warranty already exists for product ID " + warranty.getProductId());
         }
 
         applyCalculatedFields(warranty);
         warranty.setId(id);
+        warranty.setUserId(userId);
         warrantyRepository.update(warranty);
         return warranty;
     }
 
-    public void delete(long id) {
+    public void delete(Long userId, long id) {
         validateId(id);
-        getById(id);
-        warrantyRepository.deleteById(id);
+        getById(userId, id);
+        warrantyRepository.deleteByIdAndUserId(id, userId);
+    }
+
+    private void verifyProductExistsAndOwned(Long userId, long productId) {
+        productRepository.findByIdAndUserId(productId, userId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
     }
 
     private void applyCalculatedFields(Warranty warranty) {

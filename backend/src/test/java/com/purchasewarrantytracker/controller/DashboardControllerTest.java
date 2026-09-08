@@ -1,5 +1,7 @@
 package com.purchasewarrantytracker.controller;
 
+import com.purchasewarrantytracker.config.TestSecurityConfig;
+import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
 import com.purchasewarrantytracker.model.DashboardDTO;
 import com.purchasewarrantytracker.service.DashboardService;
 import org.junit.jupiter.api.Test;
@@ -7,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -17,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(DashboardController.class)
+@ContextConfiguration(classes = {DashboardController.class, GlobalExceptionHandler.class, TestSecurityConfig.class})
 class DashboardControllerTest {
 
     @Autowired
@@ -35,7 +39,7 @@ class DashboardControllerTest {
                 0L
         );
 
-        when(dashboardService.getDashboardSummary()).thenReturn(dto);
+        when(dashboardService.getDashboardSummary(org.mockito.ArgumentMatchers.any(Long.class))).thenReturn(dto);
 
         mockMvc.perform(get("/api/dashboard/summary"))
                 .andExpect(status().isOk())

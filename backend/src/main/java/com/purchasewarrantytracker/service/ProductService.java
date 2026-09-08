@@ -17,36 +17,38 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public Product create(Product product) {
+    public Product create(Long userId, Product product) {
         validateProduct(product);
+        product.setUserId(userId);
         return productRepository.save(product);
     }
 
-    public List<Product> getAll() {
-        return productRepository.findAll();
+    public List<Product> getAll(Long userId) {
+        return productRepository.findByUserId(userId);
     }
 
-    public Product getById(long id) {
-        validateId(id);
-        return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+    public Product getById(Long userId, long id) {
+        return productRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
-    public Product update(long id, Product product) {
+    public Product update(Long userId, long id, Product product) {
         validateId(id);
         validateProduct(product);
-        getById(id);
+        getById(userId, id);
         product.setId(id);
+        product.setUserId(userId);
         productRepository.update(product);
         return product;
     }
 
-    public void delete(long id) {
+    public void delete(Long userId, long id) {
         validateId(id);
-        getById(id);
-        if (productRepository.hasPurchases(id)) {
+        getById(userId, id);
+        if (productRepository.hasPurchases(id, userId)) {
             throw new ProductInUseException(id);
         }
-        productRepository.deleteById(id);
+        productRepository.deleteByIdAndUserId(id, userId);
     }
 
     private void validateId(long id) {

@@ -1,9 +1,12 @@
 package com.tracker.controller;
 
+import com.purchasewarrantytracker.model.User;
 import com.tracker.entity.ServiceRecord;
 import com.tracker.service.ServiceRecordService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,27 +33,41 @@ public class ServiceRecordController {
         this.serviceRecordService = serviceRecordService;
     }
 
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        User user = (User) authentication.getPrincipal();
+        return user.getId();
+    }
+
     @GetMapping
     public List<ServiceRecord> getAllRecords(@RequestParam(required = false) Long productId) {
+        Long userId = getCurrentUserId();
         if (productId != null) {
-            return serviceRecordService.getRecordsByProduct(productId);
+            return serviceRecordService.getRecordsByProduct(userId, productId);
         }
-        return serviceRecordService.getAllRecords();
+        return serviceRecordService.getAllRecords(userId);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ServiceRecord> getRecordById(@PathVariable Long id) {
-        return ResponseEntity.ok(serviceRecordService.getRecordById(id));
+        Long userId = getCurrentUserId();
+        return ResponseEntity.ok(serviceRecordService.getRecordById(userId, id));
     }
 
     @GetMapping("/product/{productId}")
     public List<ServiceRecord> getRecordsByProductId(@PathVariable Long productId) {
-        return serviceRecordService.getRecordsByProduct(productId);
+        Long userId = getCurrentUserId();
+        return serviceRecordService.getRecordsByProduct(userId, productId);
     }
 
     @PostMapping
     public ResponseEntity<ServiceRecord> createRecord(@Valid @RequestBody ServiceRecord record) {
-        ServiceRecord createdRecord = serviceRecordService.createRecord(record);
+        Long userId = getCurrentUserId();
+        ServiceRecord createdRecord = serviceRecordService.createRecord(userId, record);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdRecord.getId())
@@ -61,13 +78,14 @@ public class ServiceRecordController {
     @PutMapping("/{id}")
     public ResponseEntity<ServiceRecord> updateRecord(@PathVariable Long id,
                                                       @Valid @RequestBody ServiceRecord updatedRecord) {
-        return ResponseEntity.ok(serviceRecordService.updateRecord(id, updatedRecord));
+        Long userId = getCurrentUserId();
+        return ResponseEntity.ok(serviceRecordService.updateRecord(userId, id, updatedRecord));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecord(@PathVariable Long id) {
-        serviceRecordService.deleteRecord(id);
+        Long userId = getCurrentUserId();
+        serviceRecordService.deleteRecord(userId, id);
         return ResponseEntity.noContent().build();
     }
 }
-

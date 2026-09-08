@@ -17,6 +17,9 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
     @NotBlank(message = "Product name is required")
     @Size(max = 150, message = "Product name must be at most 150 characters")
     @Column(name = "name", nullable = false, length = 150)
@@ -47,6 +50,18 @@ public class Product {
 
     public Product(Long id, String name, String category, String brand, String model, String serialNumber, String notes) {
         this.id = id;
+        this.userId = null;
+        this.name = name;
+        this.category = category;
+        this.brand = brand;
+        this.model = model;
+        this.serialNumber = serialNumber;
+        this.notes = notes;
+    }
+
+    public Product(Long id, Long userId, String name, String category, String brand, String model, String serialNumber, String notes) {
+        this.id = id;
+        this.userId = userId;
         this.name = name;
         this.category = category;
         this.brand = brand;
@@ -61,6 +76,8 @@ public class Product {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getCategory() { return category; }

@@ -21,6 +21,7 @@ public class PurchaseRepository {
     private static final RowMapper<Purchase> PURCHASE_ROW_MAPPER = (resultSet, rowNumber) ->
             new Purchase(
                     resultSet.getLong("id"),
+                    resultSet.getLong("user_id"),
                     resultSet.getLong("product_id"),
                     resultSet.getDate("purchase_date").toLocalDate(),
                     resultSet.getBigDecimal("purchase_price"),
@@ -35,16 +36,17 @@ public class PurchaseRepository {
     }
 
     public Purchase save(Purchase purchase) {
-        String sql = "INSERT INTO purchases (product_id, purchase_date, purchase_price, store_name, payment_method) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO purchases (user_id, product_id, purchase_date, purchase_price, store_name, payment_method) VALUES (?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            statement.setLong(1, purchase.getProductId());
-            statement.setDate(2, Date.valueOf(purchase.getPurchaseDate()));
-            statement.setBigDecimal(3, purchase.getPurchasePrice());
-            statement.setString(4, purchase.getStoreName());
-            statement.setString(5, purchase.getPaymentMethod().name());
+            statement.setLong(1, purchase.getUserId());
+            statement.setLong(2, purchase.getProductId());
+            statement.setDate(3, Date.valueOf(purchase.getPurchaseDate()));
+            statement.setBigDecimal(4, purchase.getPurchasePrice());
+            statement.setString(5, purchase.getStoreName());
+            statement.setString(6, purchase.getPaymentMethod().name());
             return statement;
         }, keyHolder);
 
@@ -58,37 +60,63 @@ public class PurchaseRepository {
 
     public List<Purchase> findAll() {
         return jdbcTemplate.query(
-                "SELECT id, product_id, purchase_date, purchase_price, store_name, payment_method FROM purchases ORDER BY purchase_date DESC, id DESC",
+                "SELECT id, user_id, product_id, purchase_date, purchase_price, store_name, payment_method FROM purchases ORDER BY purchase_date DESC, id DESC",
                 PURCHASE_ROW_MAPPER
+        );
+    }
+
+    public List<Purchase> findByUserId(Long userId) {
+        return jdbcTemplate.query(
+                "SELECT id, user_id, product_id, purchase_date, purchase_price, store_name, payment_method FROM purchases WHERE user_id = ? ORDER BY purchase_date DESC, id DESC",
+                PURCHASE_ROW_MAPPER,
+                userId
         );
     }
 
     public Optional<Purchase> findById(long id) {
         List<Purchase> purchases = jdbcTemplate.query(
-                "SELECT id, product_id, purchase_date, purchase_price, store_name, payment_method FROM purchases WHERE id = ?",
+                "SELECT id, user_id, product_id, purchase_date, purchase_price, store_name, payment_method FROM purchases WHERE id = ?",
                 PURCHASE_ROW_MAPPER,
                 id
         );
         return purchases.stream().findFirst();
     }
 
+    public Optional<Purchase> findByIdAndUserId(long id, Long userId) {
+        List<Purchase> purchases = jdbcTemplate.query(
+                "SELECT id, user_id, product_id, purchase_date, purchase_price, store_name, payment_method FROM purchases WHERE id = ? AND user_id = ?",
+                PURCHASE_ROW_MAPPER,
+                id, userId
+        );
+        return purchases.stream().findFirst();
+    }
+
     public List<Purchase> findByProductId(long productId) {
         return jdbcTemplate.query(
-                "SELECT id, product_id, purchase_date, purchase_price, store_name, payment_method FROM purchases WHERE product_id = ? ORDER BY purchase_date DESC, id DESC",
+                "SELECT id, user_id, product_id, purchase_date, purchase_price, store_name, payment_method FROM purchases WHERE product_id = ? ORDER BY purchase_date DESC, id DESC",
                 PURCHASE_ROW_MAPPER,
                 productId
         );
     }
 
+    public List<Purchase> findByProductIdAndUserId(long productId, Long userId) {
+        return jdbcTemplate.query(
+                "SELECT id, user_id, product_id, purchase_date, purchase_price, store_name, payment_method FROM purchases WHERE product_id = ? AND user_id = ? ORDER BY purchase_date DESC, id DESC",
+                PURCHASE_ROW_MAPPER,
+                productId, userId
+        );
+    }
+
     public boolean update(Purchase purchase) {
-        String sql = "UPDATE purchases SET product_id = ?, purchase_date = ?, purchase_price = ?, store_name = ?, payment_method = ? WHERE id = ?";
+        String sql = "UPDATE purchases SET product_id = ?, purchase_date = ?, purchase_price = ?, store_name = ?, payment_method = ? WHERE id = ? AND user_id = ?";
         int updatedRows = jdbcTemplate.update(sql,
                 purchase.getProductId(),
                 Date.valueOf(purchase.getPurchaseDate()),
                 purchase.getPurchasePrice(),
                 purchase.getStoreName(),
                 purchase.getPaymentMethod().name(),
-                purchase.getId()
+                purchase.getId(),
+                purchase.getUserId()
         );
         return updatedRows == 1;
     }
@@ -97,9 +125,19 @@ public class PurchaseRepository {
         return jdbcTemplate.update("DELETE FROM purchases WHERE id = ?", id) == 1;
     }
 
+    public boolean deleteByIdAndUserId(long id, Long userId) {
+        return jdbcTemplate.update("DELETE FROM purchases WHERE id = ? AND user_id = ?", id, userId) == 1;
+    }
+
     public boolean existsById(long id) {
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM purchases WHERE id = ?", Integer.class, id);
+        return count != null && count > 0;
+    }
+
+    public boolean existsByIdAndUserId(long id, Long userId) {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM purchases WHERE id = ? AND user_id = ?", Integer.class, id, userId);
         return count != null && count > 0;
     }
 }

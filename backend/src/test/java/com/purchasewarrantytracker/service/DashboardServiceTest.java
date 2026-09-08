@@ -28,6 +28,8 @@ import com.tracker.repository.ServiceRecordRepository;
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceTest {
 
+    private static final long TEST_USER_ID = 1L;
+
     @Mock
     private ProductRepository productRepository;
 
@@ -45,24 +47,24 @@ class DashboardServiceTest {
 
     @Test
     void getDashboardSummaryComputesCorrectMetrics() {
-        Product p1 = new Product(1L, "Laptop", "Electronics", "Lenovo", "IdeaPad", "SN-1", "Notes");
-        Product p2 = new Product(2L, "Purifier", "Appliance", "Aquaguard", "Delight", "SN-2", "Notes");
-        when(productRepository.findAll()).thenReturn(List.of(p1, p2));
+        Product p1 = new Product(1L, TEST_USER_ID, "Laptop", "Electronics", "Lenovo", "IdeaPad", "SN-1", "Notes");
+        Product p2 = new Product(2L, TEST_USER_ID, "Purifier", "Appliance", "Aquaguard", "Delight", "SN-2", "Notes");
+        when(productRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(p1, p2));
 
-        Purchase pur1 = new Purchase(1L, 1L, LocalDate.now(), new BigDecimal("50000.00"), "Store A", PaymentMethod.UPI);
-        Purchase pur2 = new Purchase(2L, 2L, LocalDate.now(), new BigDecimal("12000.00"), "Store B", PaymentMethod.CARD);
-        when(purchaseRepository.findAll()).thenReturn(List.of(pur1, pur2));
+        Purchase pur1 = new Purchase(1L, TEST_USER_ID, 1L, LocalDate.now(), new BigDecimal("50000.00"), "Store A", PaymentMethod.UPI);
+        Purchase pur2 = new Purchase(2L, TEST_USER_ID, 2L, LocalDate.now(), new BigDecimal("12000.00"), "Store B", PaymentMethod.CARD);
+        when(purchaseRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(pur1, pur2));
 
-        Product entityProduct = new Product(1L, "Laptop", "Electronics", null, null, null, null);
+        Product entityProduct = new Product(1L, TEST_USER_ID, "Laptop", "Electronics", null, null, null, null);
         ServiceRecord sr1 = new ServiceRecord(1L, entityProduct, LocalDate.now(), "Care", "Fixed fan", new BigDecimal("500.00"), ServiceType.REPAIR);
         ServiceRecord sr2 = new ServiceRecord(2L, entityProduct, LocalDate.now(), "Care", "Maintenance", new BigDecimal("300.00"), ServiceType.MAINTENANCE);
-        when(serviceRecordRepository.findAll()).thenReturn(List.of(sr1, sr2));
+        when(serviceRecordRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(sr1, sr2));
 
         Warranty w1 = new Warranty(1L, 1L, LocalDate.now(), 12, LocalDate.now().plusMonths(12), "Lenovo", WarrantyStatus.ACTIVE);
         Warranty w2 = new Warranty(2L, 2L, LocalDate.now().minusMonths(24), 12, LocalDate.now().minusMonths(12), "Aquaguard", WarrantyStatus.EXPIRED);
-        when(warrantyService.getAll()).thenReturn(List.of(w1, w2));
+        when(warrantyService.getAll(TEST_USER_ID)).thenReturn(List.of(w1, w2));
 
-        DashboardDTO summary = dashboardService.getDashboardSummary();
+        DashboardDTO summary = dashboardService.getDashboardSummary(TEST_USER_ID);
 
         assertNotNull(summary);
         assertEquals(2L, summary.totalProductsCount());
@@ -74,12 +76,12 @@ class DashboardServiceTest {
 
     @Test
     void getDashboardSummaryHandlesEmptyDataGracefully() {
-        when(productRepository.findAll()).thenReturn(List.of());
-        when(purchaseRepository.findAll()).thenReturn(List.of());
-        when(serviceRecordRepository.findAll()).thenReturn(List.of());
-        when(warrantyService.getAll()).thenReturn(List.of());
+        when(productRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of());
+        when(purchaseRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of());
+        when(serviceRecordRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of());
+        when(warrantyService.getAll(TEST_USER_ID)).thenReturn(List.of());
 
-        DashboardDTO summary = dashboardService.getDashboardSummary();
+        DashboardDTO summary = dashboardService.getDashboardSummary(TEST_USER_ID);
 
         assertNotNull(summary);
         assertEquals(0L, summary.totalProductsCount());

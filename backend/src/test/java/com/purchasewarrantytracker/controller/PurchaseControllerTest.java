@@ -1,5 +1,7 @@
 package com.purchasewarrantytracker.controller;
 
+import com.purchasewarrantytracker.config.TestSecurityConfig;
+import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
 import com.purchasewarrantytracker.exception.PurchaseNotFoundException;
 import com.purchasewarrantytracker.model.PaymentMethod;
 import com.purchasewarrantytracker.model.Purchase;
@@ -9,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -29,8 +31,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PurchaseController.class)
-@ActiveProfiles("mysql")
+@ContextConfiguration(classes = {PurchaseController.class, GlobalExceptionHandler.class, TestSecurityConfig.class})
 class PurchaseControllerTest {
+
+    private static final long TEST_USER_ID = 1L;
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,7 +45,7 @@ class PurchaseControllerTest {
     @Test
     void createReturnsCreatedPurchaseAndLocationHeader() throws Exception {
         Purchase purchase = new Purchase(1L, 1L, LocalDate.of(2026, 6, 15), new BigDecimal("54999.00"), "Campus Store", PaymentMethod.UPI);
-        when(purchaseService.create(any(Purchase.class))).thenReturn(purchase);
+        when(purchaseService.create(eq(TEST_USER_ID), any(Purchase.class))).thenReturn(purchase);
 
         mockMvc.perform(post("/api/purchases")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -55,7 +59,7 @@ class PurchaseControllerTest {
 
     @Test
     void getAllReturnsPurchases() throws Exception {
-        when(purchaseService.getAll()).thenReturn(List.of(
+        when(purchaseService.getAll(eq(TEST_USER_ID))).thenReturn(List.of(
                 new Purchase(1L, 1L, LocalDate.of(2026, 6, 15), new BigDecimal("54999.00"), "Campus Store", PaymentMethod.UPI)
         ));
 
@@ -67,7 +71,7 @@ class PurchaseControllerTest {
 
     @Test
     void getByIdReturnsPurchase() throws Exception {
-        when(purchaseService.getById(1L)).thenReturn(
+        when(purchaseService.getById(eq(TEST_USER_ID), eq(1L))).thenReturn(
                 new Purchase(1L, 1L, LocalDate.of(2026, 6, 15), new BigDecimal("54999.00"), "Campus Store", PaymentMethod.UPI)
         );
 
@@ -79,7 +83,7 @@ class PurchaseControllerTest {
 
     @Test
     void getByIdNotFoundReturns404() throws Exception {
-        when(purchaseService.getById(99L)).thenThrow(new PurchaseNotFoundException(99L));
+        when(purchaseService.getById(eq(TEST_USER_ID), eq(99L))).thenThrow(new PurchaseNotFoundException(99L));
 
         mockMvc.perform(get("/api/purchases/99"))
                 .andExpect(status().isNotFound())
@@ -88,11 +92,11 @@ class PurchaseControllerTest {
 
     @Test
     void getByProductIdReturnsPurchases() throws Exception {
-        when(purchaseService.getByProductId(1L)).thenReturn(List.of(
+        when(purchaseService.getByProductId(eq(TEST_USER_ID), eq(1L))).thenReturn(List.of(
                 new Purchase(1L, 1L, LocalDate.of(2026, 6, 15), new BigDecimal("54999.00"), "Campus Store", PaymentMethod.UPI)
         ));
 
-        mockMvc.perform(get("/api/products/1/purchases"))
+        mockMvc.perform(get("/api/purchases/products/1/purchases"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].productId").value(1));
     }
@@ -100,7 +104,7 @@ class PurchaseControllerTest {
     @Test
     void updateReturnsUpdatedPurchase() throws Exception {
         Purchase updated = new Purchase(1L, 1L, LocalDate.of(2026, 6, 15), new BigDecimal("49999.00"), "Updated Store", PaymentMethod.CARD);
-        when(purchaseService.update(eq(1L), any(Purchase.class))).thenReturn(updated);
+        when(purchaseService.update(eq(TEST_USER_ID), eq(1L), any(Purchase.class))).thenReturn(updated);
 
         mockMvc.perform(put("/api/purchases/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -112,7 +116,7 @@ class PurchaseControllerTest {
 
     @Test
     void deleteReturnsNoContent() throws Exception {
-        doNothing().when(purchaseService).delete(1L);
+        doNothing().when(purchaseService).delete(eq(TEST_USER_ID), eq(1L));
 
         mockMvc.perform(delete("/api/purchases/1"))
                 .andExpect(status().isNoContent());
@@ -127,4 +131,3 @@ class PurchaseControllerTest {
                 .andExpect(jsonPath("$.status").value(400));
     }
 }
-

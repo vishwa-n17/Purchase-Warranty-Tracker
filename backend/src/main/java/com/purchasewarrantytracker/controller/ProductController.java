@@ -1,11 +1,13 @@
 package com.purchasewarrantytracker.controller;
 
 import com.purchasewarrantytracker.model.Product;
+import com.purchasewarrantytracker.model.User;
 import com.purchasewarrantytracker.service.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,9 +33,21 @@ public class ProductController {
         this.productService = productService;
     }
 
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        User user = (User) authentication.getPrincipal();
+        return user.getId();
+    }
+
     @PostMapping
     public ResponseEntity<Product> create(@Valid @RequestBody Product product) {
-        Product createdProduct = productService.create(product);
+        Long userId = getCurrentUserId();
+        product.setUserId(userId);
+        Product createdProduct = productService.create(userId, product);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdProduct.getId())
@@ -43,23 +57,27 @@ public class ProductController {
 
     @GetMapping
     public List<Product> getAll() {
-        return productService.getAll();
+        Long userId = getCurrentUserId();
+        return productService.getAll(userId);
     }
 
     @GetMapping("/{id}")
     public Product getById(@PathVariable @Positive(message = "Product ID must be a positive number") long id) {
-        return productService.getById(id);
+        Long userId = getCurrentUserId();
+        return productService.getById(userId, id);
     }
 
     @PutMapping("/{id}")
     public Product update(@PathVariable @Positive(message = "Product ID must be a positive number") long id,
                           @Valid @RequestBody Product product) {
-        return productService.update(id, product);
+        Long userId = getCurrentUserId();
+        return productService.update(userId, id, product);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @Positive(message = "Product ID must be a positive number") long id) {
-        productService.delete(id);
+        Long userId = getCurrentUserId();
+        productService.delete(userId, id);
         return ResponseEntity.noContent().build();
     }
 }

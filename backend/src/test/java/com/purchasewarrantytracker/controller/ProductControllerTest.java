@@ -1,5 +1,7 @@
 package com.purchasewarrantytracker.controller;
 
+import com.purchasewarrantytracker.config.TestSecurityConfig;
+import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
 import com.purchasewarrantytracker.exception.ProductNotFoundException;
 import com.purchasewarrantytracker.model.Product;
 import com.purchasewarrantytracker.service.ProductService;
@@ -8,11 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -24,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProductController.class)
-@ActiveProfiles("mysql")
+@ContextConfiguration(classes = {ProductController.class, GlobalExceptionHandler.class, TestSecurityConfig.class})
 class ProductControllerTest {
 
     @Autowired
@@ -36,7 +40,7 @@ class ProductControllerTest {
     @Test
     void createReturnsCreatedProductAndLocationHeader() throws Exception {
         Product product = new Product(1L, "Laptop", "Electronics", "Lenovo", "IdeaPad", "SERIAL-1", "Notes");
-        when(productService.create(org.mockito.ArgumentMatchers.any(Product.class))).thenReturn(product);
+        when(productService.create(any(Long.class), any(Product.class))).thenReturn(product);
 
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -49,7 +53,7 @@ class ProductControllerTest {
 
     @Test
     void getAllReturnsProducts() throws Exception {
-        when(productService.getAll()).thenReturn(List.of(
+        when(productService.getAll(any(Long.class))).thenReturn(List.of(
                 new Product(1L, "Laptop", "Electronics", null, null, null, null)));
 
         mockMvc.perform(get("/api/products"))
@@ -68,7 +72,7 @@ class ProductControllerTest {
 
     @Test
     void missingProductReturnsNotFound() throws Exception {
-        when(productService.getById(5L)).thenThrow(new ProductNotFoundException(5L));
+        when(productService.getById(any(Long.class), eq(5L))).thenThrow(new ProductNotFoundException(5L));
 
         mockMvc.perform(get("/api/products/5"))
                 .andExpect(status().isNotFound())
@@ -78,7 +82,7 @@ class ProductControllerTest {
     @Test
     void updateReturnsUpdatedProduct() throws Exception {
         Product updatedProduct = new Product(1L, "Updated Laptop", "Electronics", null, null, null, null);
-        when(productService.update(org.mockito.ArgumentMatchers.eq(1L), org.mockito.ArgumentMatchers.any(Product.class)))
+        when(productService.update(any(Long.class), eq(1L), any(Product.class)))
                 .thenReturn(updatedProduct);
 
         mockMvc.perform(put("/api/products/1")
@@ -90,7 +94,7 @@ class ProductControllerTest {
 
     @Test
     void deleteReturnsNoContent() throws Exception {
-        doNothing().when(productService).delete(1L);
+        doNothing().when(productService).delete(any(Long.class), eq(1L));
 
         mockMvc.perform(delete("/api/products/1"))
                 .andExpect(status().isNoContent());

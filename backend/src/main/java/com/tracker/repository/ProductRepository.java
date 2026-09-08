@@ -7,4 +7,6 @@ import com.purchasewarrantytracker.model.Product;
 
 @Repository("trackerProductRepository")
 public interface ProductRepository extends JpaRepository<Product, Long> {
+    boolean existsByIdAndUserId(Long productId, Long userId);
+    java.util.Optional<Product> findByIdAndUserId(Long id, Long userId);
 }

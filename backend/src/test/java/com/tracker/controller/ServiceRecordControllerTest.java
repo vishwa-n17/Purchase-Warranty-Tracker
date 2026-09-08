@@ -1,7 +1,9 @@
 package com.tracker.controller;
 
 import com.purchasewarrantytracker.model.Product;
-
+import com.purchasewarrantytracker.model.User;
+import com.purchasewarrantytracker.config.TestSecurityConfig;
+import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
 import com.tracker.entity.ServiceRecord;
 import com.tracker.entity.ServiceType;
 import com.tracker.service.ServiceRecordService;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -29,11 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
-import org.springframework.test.context.ContextConfiguration;
-
 @WebMvcTest(controllers = ServiceRecordController.class)
-@ContextConfiguration(classes = {ServiceRecordController.class, GlobalExceptionHandler.class})
+@ContextConfiguration(classes = {ServiceRecordController.class, GlobalExceptionHandler.class, TestSecurityConfig.class})
 class ServiceRecordControllerTest {
 
     @Autowired
@@ -45,10 +45,10 @@ class ServiceRecordControllerTest {
     @Test
     void getAllRecordsReturnsOk() throws Exception {
         Product product = new Product(1L, "Laptop", "Electronics", null, null, null, null);
-        ServiceRecord record = new ServiceRecord(1L, product, LocalDate.of(2026, 8, 10),
+        ServiceRecord record = new ServiceRecord(1L, 1L, product, LocalDate.of(2026, 8, 10),
                 "Tech Care", "Fan cleaned", new BigDecimal("500.00"), ServiceType.MAINTENANCE);
 
-        when(serviceRecordService.getAllRecords()).thenReturn(List.of(record));
+        when(serviceRecordService.getAllRecords(any(Long.class))).thenReturn(List.of(record));
 
         mockMvc.perform(get("/api/service-records"))
                 .andExpect(status().isOk())
@@ -59,10 +59,10 @@ class ServiceRecordControllerTest {
     @Test
     void getRecordByIdReturnsOk() throws Exception {
         Product product = new Product(1L, "Laptop", "Electronics", null, null, null, null);
-        ServiceRecord record = new ServiceRecord(1L, product, LocalDate.of(2026, 8, 10),
+        ServiceRecord record = new ServiceRecord(1L, 1L, product, LocalDate.of(2026, 8, 10),
                 "Tech Care", "Fan cleaned", new BigDecimal("500.00"), ServiceType.MAINTENANCE);
 
-        when(serviceRecordService.getRecordById(1L)).thenReturn(record);
+        when(serviceRecordService.getRecordById(any(Long.class), eq(1L))).thenReturn(record);
 
         mockMvc.perform(get("/api/service-records/1"))
                 .andExpect(status().isOk())
@@ -72,7 +72,8 @@ class ServiceRecordControllerTest {
 
     @Test
     void getRecordByIdNotFoundReturns404() throws Exception {
-        when(serviceRecordService.getRecordById(99L)).thenThrow(new EntityNotFoundException("Service record with ID 99 was not found"));
+        when(serviceRecordService.getRecordById(any(Long.class), eq(99L)))
+                .thenThrow(new EntityNotFoundException("Service record with ID 99 was not found"));
 
         mockMvc.perform(get("/api/service-records/99"))
                 .andExpect(status().isNotFound())
@@ -82,10 +83,10 @@ class ServiceRecordControllerTest {
     @Test
     void getRecordsByProductIdReturnsOk() throws Exception {
         Product product = new Product(1L, "Laptop", "Electronics", null, null, null, null);
-        ServiceRecord record = new ServiceRecord(1L, product, LocalDate.of(2026, 8, 10),
+        ServiceRecord record = new ServiceRecord(1L, 1L, product, LocalDate.of(2026, 8, 10),
                 "Tech Care", "Fan cleaned", new BigDecimal("500.00"), ServiceType.MAINTENANCE);
 
-        when(serviceRecordService.getRecordsByProduct(1L)).thenReturn(List.of(record));
+        when(serviceRecordService.getRecordsByProduct(any(Long.class), eq(1L))).thenReturn(List.of(record));
 
         mockMvc.perform(get("/api/service-records/product/1"))
                 .andExpect(status().isOk())
@@ -95,10 +96,10 @@ class ServiceRecordControllerTest {
     @Test
     void createRecordReturns201CreatedAndLocationHeader() throws Exception {
         Product product = new Product(1L, "Laptop", "Electronics", null, null, null, null);
-        ServiceRecord record = new ServiceRecord(1L, product, LocalDate.of(2026, 8, 10),
+        ServiceRecord record = new ServiceRecord(1L, 1L, product, LocalDate.of(2026, 8, 10),
                 "Tech Care", "Fan cleaned", new BigDecimal("500.00"), ServiceType.MAINTENANCE);
 
-        when(serviceRecordService.createRecord(any(ServiceRecord.class))).thenReturn(record);
+        when(serviceRecordService.createRecord(any(Long.class), any(ServiceRecord.class))).thenReturn(record);
 
         mockMvc.perform(post("/api/service-records")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -121,10 +122,10 @@ class ServiceRecordControllerTest {
     @Test
     void updateRecordReturns200Ok() throws Exception {
         Product product = new Product(1L, "Laptop", "Electronics", null, null, null, null);
-        ServiceRecord updated = new ServiceRecord(1L, product, LocalDate.of(2026, 8, 15),
+        ServiceRecord updated = new ServiceRecord(1L, 1L, product, LocalDate.of(2026, 8, 15),
                 "New Provider", "Repaired hinge", new BigDecimal("750.00"), ServiceType.REPAIR);
 
-        when(serviceRecordService.updateRecord(eq(1L), any(ServiceRecord.class))).thenReturn(updated);
+        when(serviceRecordService.updateRecord(any(Long.class), eq(1L), any(ServiceRecord.class))).thenReturn(updated);
 
         mockMvc.perform(put("/api/service-records/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -136,10 +137,13 @@ class ServiceRecordControllerTest {
 
     @Test
     void deleteRecordReturns204NoContent() throws Exception {
-        doNothing().when(serviceRecordService).deleteRecord(1L);
+        Product product = new Product(1L, "Laptop", "Electronics", null, null, null, null);
+        ServiceRecord record = new ServiceRecord(1L, 1L, product, LocalDate.of(2026, 8, 10),
+                "Tech Care", "Fan cleaned", new BigDecimal("500.00"), ServiceType.MAINTENANCE);
+        when(serviceRecordService.getRecordById(any(Long.class), eq(1L))).thenReturn(record);
+        doNothing().when(serviceRecordService).deleteRecord(any(Long.class), eq(1L));
 
         mockMvc.perform(delete("/api/service-records/1"))
                 .andExpect(status().isNoContent());
     }
 }
-

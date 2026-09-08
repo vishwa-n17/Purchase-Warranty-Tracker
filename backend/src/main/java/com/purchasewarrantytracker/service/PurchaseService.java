@@ -22,41 +22,48 @@ public class PurchaseService {
         this.productRepository = productRepository;
     }
 
-    public Purchase create(Purchase purchase) {
+    public Purchase create(Long userId, Purchase purchase) {
         validatePurchase(purchase);
-        verifyProductExists(purchase.getProductId());
+        verifyProductExistsAndOwned(userId, purchase.getProductId());
+        purchase.setUserId(userId);
         return purchaseRepository.save(purchase);
     }
 
-    public List<Purchase> getAll() {
-        return purchaseRepository.findAll();
+    public List<Purchase> getAll(Long userId) {
+        return purchaseRepository.findByUserId(userId);
     }
 
-    public Purchase getById(long id) {
-        validateId(id);
-        return purchaseRepository.findById(id).orElseThrow(() -> new PurchaseNotFoundException(id));
+    public Purchase getById(Long userId, long id) {
+        return purchaseRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new PurchaseNotFoundException(id));
     }
 
-    public List<Purchase> getByProductId(long productId) {
+    public List<Purchase> getByProductId(Long userId, long productId) {
         validateProductId(productId);
-        verifyProductExists(productId);
-        return purchaseRepository.findByProductId(productId);
+        verifyProductExistsAndOwned(userId, productId);
+        return purchaseRepository.findByProductIdAndUserId(productId, userId);
     }
 
-    public Purchase update(long id, Purchase purchase) {
+    public Purchase update(Long userId, long id, Purchase purchase) {
         validateId(id);
         validatePurchase(purchase);
-        getById(id);
-        verifyProductExists(purchase.getProductId());
+        getById(userId, id);
+        verifyProductExistsAndOwned(userId, purchase.getProductId());
         purchase.setId(id);
+        purchase.setUserId(userId);
         purchaseRepository.update(purchase);
         return purchase;
     }
 
-    public void delete(long id) {
+    public void delete(Long userId, long id) {
         validateId(id);
-        getById(id);
-        purchaseRepository.deleteById(id);
+        getById(userId, id);
+        purchaseRepository.deleteByIdAndUserId(id, userId);
+    }
+
+    private void verifyProductExistsAndOwned(Long userId, long productId) {
+        productRepository.findByIdAndUserId(productId, userId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
     }
 
     private void validateId(long id) {

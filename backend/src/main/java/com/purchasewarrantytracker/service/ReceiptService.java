@@ -19,49 +19,57 @@ public class ReceiptService {
         this.purchaseRepository = purchaseRepository;
     }
 
-    public Receipt create(long purchaseId, Receipt receipt) {
+    public Receipt create(Long userId, long purchaseId, Receipt receipt) {
         validatePurchaseId(purchaseId);
         validateReceipt(receipt);
-        verifyPurchaseExists(purchaseId);
+        verifyPurchaseExistsAndOwned(userId, purchaseId);
 
-        if (receiptRepository.existsByPurchaseId(purchaseId)) {
+        if (receiptRepository.existsByPurchaseIdAndUserId(purchaseId, userId)) {
             throw new IllegalArgumentException("A receipt is already associated with purchase ID " + purchaseId);
         }
 
         receipt.setPurchaseId(purchaseId);
+        receipt.setUserId(userId);
         return receiptRepository.save(receipt);
     }
 
-    public Receipt getByPurchaseId(long purchaseId) {
+    public Receipt getByPurchaseId(Long userId, long purchaseId) {
         validatePurchaseId(purchaseId);
-        verifyPurchaseExists(purchaseId);
-        return receiptRepository.findByPurchaseId(purchaseId)
+        verifyPurchaseExistsAndOwned(userId, purchaseId);
+        return receiptRepository.findByPurchaseIdAndUserId(purchaseId, userId)
                 .orElseThrow(() -> new ReceiptNotFoundException(purchaseId));
     }
 
-    public Receipt update(long purchaseId, Receipt receipt) {
+    public Receipt update(Long userId, long purchaseId, Receipt receipt) {
         validatePurchaseId(purchaseId);
         validateReceipt(receipt);
-        verifyPurchaseExists(purchaseId);
+        verifyPurchaseExistsAndOwned(userId, purchaseId);
 
-        Receipt existingReceipt = receiptRepository.findByPurchaseId(purchaseId)
+        Receipt existingReceipt = receiptRepository.findByPurchaseIdAndUserId(purchaseId, userId)
                 .orElseThrow(() -> new ReceiptNotFoundException(purchaseId));
 
         receipt.setId(existingReceipt.getId());
         receipt.setPurchaseId(purchaseId);
+        receipt.setUserId(userId);
         receiptRepository.update(receipt);
         return receipt;
     }
 
-    public void delete(long purchaseId) {
+    public void delete(Long userId, long purchaseId) {
         validatePurchaseId(purchaseId);
-        verifyPurchaseExists(purchaseId);
+        verifyPurchaseExistsAndOwned(userId, purchaseId);
 
-        if (!receiptRepository.existsByPurchaseId(purchaseId)) {
+        if (!receiptRepository.existsByPurchaseIdAndUserId(purchaseId, userId)) {
             throw new ReceiptNotFoundException(purchaseId);
         }
 
-        receiptRepository.deleteByPurchaseId(purchaseId);
+        receiptRepository.deleteByPurchaseIdAndUserId(purchaseId, userId);
+    }
+
+    private void verifyPurchaseExistsAndOwned(Long userId, long purchaseId) {
+        if (!purchaseRepository.existsByIdAndUserId(purchaseId, userId)) {
+            throw new PurchaseNotFoundException(purchaseId);
+        }
     }
 
     private void validatePurchaseId(long purchaseId) {

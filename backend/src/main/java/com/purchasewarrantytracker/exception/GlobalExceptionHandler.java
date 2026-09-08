@@ -36,8 +36,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DataAccessException.class)
-    public ResponseEntity<ApiError> handleDatabaseError(DataAccessException exception) {
-        return error(HttpStatus.INTERNAL_SERVER_ERROR, "A database error occurred");
+    public ResponseEntity<ApiError> handleDatabaseError(DataAccessException ex) {
+        String detail = ex.getMessage();
+        if (detail == null || detail.isBlank()) detail = "A database error occurred";
+        ApiError error = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", detail, Instant.now());
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private ResponseEntity<ApiError> error(HttpStatus status, String message) {

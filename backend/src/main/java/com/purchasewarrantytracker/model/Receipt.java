@@ -9,6 +9,7 @@ import java.time.LocalDate;
 public class Receipt {
 
     private Long id;
+    private Long userId;
     private Long purchaseId;
 
     @NotBlank(message = "Receipt file path is required")
@@ -23,6 +24,15 @@ public class Receipt {
 
     public Receipt(Long id, Long purchaseId, String receiptFilePath, LocalDate receiptDate) {
         this.id = id;
+        this.userId = null;
+        this.purchaseId = purchaseId;
+        this.receiptFilePath = receiptFilePath;
+        this.receiptDate = receiptDate;
+    }
+
+    public Receipt(Long id, Long userId, Long purchaseId, String receiptFilePath, LocalDate receiptDate) {
+        this.id = id;
+        this.userId = userId;
         this.purchaseId = purchaseId;
         this.receiptFilePath = receiptFilePath;
         this.receiptDate = receiptDate;
@@ -34,6 +44,8 @@ public class Receipt {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
     public Long getPurchaseId() { return purchaseId; }
     public void setPurchaseId(Long purchaseId) { this.purchaseId = purchaseId; }
     public String getReceiptFilePath() { return receiptFilePath; }

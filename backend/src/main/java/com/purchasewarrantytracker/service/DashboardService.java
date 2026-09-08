@@ -32,11 +32,11 @@ public class DashboardService {
         this.serviceRecordRepository = serviceRecordRepository;
     }
 
-    public DashboardDTO getDashboardSummary() {
-        List<Product> products = productRepository.findAll();
+    public DashboardDTO getDashboardSummary(Long userId) {
+        List<Product> products = productRepository.findByUserId(userId);
         long totalProductsCount = products != null ? products.size() : 0L;
 
-        List<Purchase> purchases = purchaseRepository.findAll();
+        List<Purchase> purchases = purchaseRepository.findByUserId(userId);
         BigDecimal totalPurchaseSpend = BigDecimal.ZERO;
         if (purchases != null) {
             totalPurchaseSpend = purchases.stream()
@@ -45,7 +45,7 @@ public class DashboardService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
-        List<ServiceRecord> serviceRecords = serviceRecordRepository.findAll();
+        List<ServiceRecord> serviceRecords = serviceRecordRepository.findByUserId(userId);
         BigDecimal totalServiceSpend = BigDecimal.ZERO;
         if (serviceRecords != null) {
             totalServiceSpend = serviceRecords.stream()
@@ -54,7 +54,7 @@ public class DashboardService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
-        List<Warranty> warranties = warrantyService.getAll();
+        List<Warranty> warranties = warrantyService.getAll(userId);
         long activeWarrantiesCount = 0L;
         long expiredWarrantiesCount = 0L;
         if (warranties != null) {
