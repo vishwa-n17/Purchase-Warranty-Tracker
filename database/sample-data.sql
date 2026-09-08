@@ -26,6 +26,6 @@ VALUES
     (2, '2026-07-02', 24, '2028-07-02', 'Aquaguard', 'ACTIVE'),
     (3, '2026-07-20', 12, '2027-07-20', 'Samsung Care', 'ACTIVE');
 
-INSERT INTO service_records (product_id, service_date, problem_description, service_cost, service_notes)
+INSERT INTO service_records (product_id, service_date, provider, description, cost, service_type)
 VALUES
-    (2, '2026-08-10', 'Water flow was slow.', 0.00, 'Filter was cleaned under warranty.');
+    (2, '2026-08-10', 'Aquaguard', 'Water flow was slow.', 0.00, 'MAINTENANCE');
