@@ -24,12 +24,28 @@ let currentReceiptExists = false;
 
 function showMessage(text, isError = false) {
     messageEl.textContent = text;
-    messageEl.className = `message ${isError ? "error" : "success"}`;
+    messageEl.className = `message ${isError ? "error" : "success"} visible`;
 }
 
 function showReceiptMessage(text, isError = false) {
     receiptMessageEl.textContent = text;
-    receiptMessageEl.className = `message ${isError ? "error" : "success"}`;
+    receiptMessageEl.className = `message ${isError ? "error" : "success"} visible`;
+}
+
+function getPaymentBadge(method) {
+    const map = {
+        "UPI": "badge-upi",
+        "CARD": "badge-card",
+        "CASH": "badge-cash",
+        "BANK_TRANSFER": "badge-transfer",
+        "OTHER": "badge-other"
+    };
+    const cls = map[method] || "badge-secondary";
+    return `<span class="badge ${cls}">${method || "N/A"}</span>`;
+}
+
+function formatCurrency(amount) {
+    return `₹${Number(amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 async function getErrorMessage(response) {
@@ -68,14 +84,43 @@ function getPurchaseFromForm() {
     };
 }
 
+function showTableLoading() {
+    purchaseTableBody.innerHTML = `
+        <tr>
+            <td colspan="7">
+                <div class="loading-state">
+                    <div class="loading-state-spinner"></div>
+                    <div class="loading-state-title">Loading purchases…</div>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function showTableEmpty() {
+    purchaseTableBody.innerHTML = `
+        <tr>
+            <td colspan="7">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🛒</div>
+                    <div class="empty-state-title">No purchases recorded yet</div>
+                    <div class="empty-state-text">Record your first purchase using the form above.</div>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
 async function loadPurchases() {
     try {
+        showTableLoading();
         const response = await fetch(purchasesApiUrl);
         if (!response.ok) throw new Error(await getErrorMessage(response));
         const purchases = await response.json();
         renderPurchases(purchases);
     } catch (error) {
         showMessage(error.message || "Could not load purchases.", true);
+        showTableEmpty();
     }
 }
 
@@ -89,7 +134,7 @@ function getProductDisplayName(productId) {
 function renderPurchases(purchases) {
     purchaseTableBody.innerHTML = "";
     if (!purchases || purchases.length === 0) {
-        purchaseTableBody.innerHTML = '<tr><td colspan="7">No purchases saved yet.</td></tr>';
+        showTableEmpty();
         return;
     }
 
@@ -97,25 +142,27 @@ function renderPurchases(purchases) {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td></td>
-            <td></td>
-            <td></td>
+            <td class="text-date"></td>
+            <td class="text-currency"></td>
             <td></td>
             <td></td>
             <td>
-                <button type="button" class="receipt-btn secondary">Receipt</button>
+                <button type="button" class="btn btn-sm btn-secondary receipt-btn">Receipt</button>
             </td>
             <td>
-                <button type="button" class="edit">Edit</button>
-                <button type="button" class="delete secondary">Delete</button>
+                <button type="button" class="btn btn-sm btn-primary edit">Edit</button>
+                <button type="button" class="btn btn-sm btn-danger delete">Delete</button>
             </td>
         `;
 
         const cells = row.querySelectorAll("td");
         cells[0].textContent = getProductDisplayName(purchase.productId);
         cells[1].textContent = purchase.purchaseDate;
-        cells[2].textContent = `₹${Number(purchase.purchasePrice).toFixed(2)}`;
+        cells[1].className = "text-date";
+        cells[2].textContent = formatCurrency(purchase.purchasePrice);
+        cells[2].className = "text-currency";
         cells[3].textContent = purchase.storeName;
-        cells[4].textContent = purchase.paymentMethod;
+        cells[4].innerHTML = getPaymentBadge(purchase.paymentMethod);
 
         row.querySelector(".receipt-btn").addEventListener("click", () => openReceiptSection(purchase));
         row.querySelector(".edit").addEventListener("click", () => fillPurchaseFormForEdit(purchase));
@@ -134,7 +181,7 @@ function fillPurchaseFormForEdit(purchase) {
     document.getElementById("payment-method").value = purchase.paymentMethod;
     document.getElementById("submit-purchase-button").textContent = "Update purchase";
     showMessage(`Editing purchase #${purchase.id} (${getProductDisplayName(purchase.productId)}).`);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("purchase-form").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function resetPurchaseForm() {
@@ -184,10 +231,10 @@ async function deletePurchase(id, productName) {
 
 async function openReceiptSection(purchase) {
     receiptPurchaseIdInput.value = purchase.id;
-    receiptPurchaseInfo.textContent = `#${purchase.id} - ${getProductDisplayName(purchase.productId)} (Date: ${purchase.purchaseDate}, Price: ₹${Number(purchase.purchasePrice).toFixed(2)})`;
+    receiptPurchaseInfo.textContent = `#${purchase.id} - ${getProductDisplayName(purchase.productId)} (Date: ${purchase.purchaseDate}, Price: ${formatCurrency(purchase.purchasePrice)})`;
     receiptMessageEl.textContent = "";
     receiptSection.style.display = "block";
-    receiptSection.scrollIntoView({ behavior: "smooth" });
+    receiptSection.scrollIntoView({ behavior: "smooth", block: "start" });
 
     try {
         const response = await fetch(`${purchasesApiUrl}/${purchase.id}/receipt`);
@@ -197,7 +244,7 @@ async function openReceiptSection(purchase) {
             receiptFilePathInput.value = receipt.receiptFilePath;
             receiptDateInput.value = receipt.receiptDate;
             saveReceiptButton.textContent = "Update receipt";
-            deleteReceiptButton.style.display = "inline-block";
+            deleteReceiptButton.style.display = "inline-flex";
             showReceiptMessage("Receipt found for this purchase.");
         } else if (response.status === 404) {
             currentReceiptExists = false;
@@ -250,7 +297,7 @@ receiptForm.addEventListener("submit", async (event) => {
 
         currentReceiptExists = true;
         saveReceiptButton.textContent = "Update receipt";
-        deleteReceiptButton.style.display = "inline-block";
+        deleteReceiptButton.style.display = "inline-flex";
         showReceiptMessage(`Receipt ${method === "PUT" ? "updated" : "attached"} successfully.`);
         showMessage(`Receipt saved for purchase #${purchaseId}.`);
     } catch (error) {
@@ -293,4 +340,3 @@ async function init() {
 }
 
 init();
-

@@ -5,7 +5,7 @@ const message = document.getElementById("message");
 
 function showMessage(text, isError = false) {
     message.textContent = text;
-    message.className = `message ${isError ? "error" : "success"}`;
+    message.className = `message ${isError ? "error" : "success"} visible`;
 }
 
 function getProductFromForm() {
@@ -24,30 +24,68 @@ async function getErrorMessage(response) {
     return error?.message || "The request could not be completed.";
 }
 
+function showTableLoading() {
+    tableBody.innerHTML = `
+        <tr>
+            <td colspan="5">
+                <div class="loading-state">
+                    <div class="loading-state-spinner"></div>
+                    <div class="loading-state-title">Loading products…</div>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function showTableEmpty() {
+    tableBody.innerHTML = `
+        <tr>
+            <td colspan="5">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📦</div>
+                    <div class="empty-state-title">No products yet</div>
+                    <div class="empty-state-text">Add your first product using the form above.</div>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
 async function loadProducts() {
     try {
+        showTableLoading();
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error(await getErrorMessage(response));
-        renderProducts(await response.json());
+        const products = await response.json();
+        renderProducts(products);
     } catch (error) {
         showMessage(error.message || "Could not load products.", true);
+        showTableEmpty();
     }
 }
 
 function renderProducts(products) {
     tableBody.innerHTML = "";
-    if (products.length === 0) {
-        tableBody.innerHTML = "<tr><td colspan=\"5\">No products saved yet.</td></tr>";
+    if (!products || products.length === 0) {
+        showTableEmpty();
         return;
     }
+
     products.forEach((product) => {
         const row = document.createElement("tr");
-        row.innerHTML = `<td></td><td></td><td></td><td></td><td><button type="button" class="edit">Edit</button><button type="button" class="delete secondary">Delete</button></td>`;
+        row.innerHTML = `
+            <td></td><td></td><td></td><td></td>
+            <td>
+                <button type="button" class="btn btn-sm btn-primary edit">Edit</button>
+                <button type="button" class="btn btn-sm btn-danger delete">Delete</button>
+            </td>
+        `;
         const cells = row.querySelectorAll("td");
         cells[0].textContent = product.name;
         cells[1].textContent = product.category;
         cells[2].textContent = [product.brand, product.model].filter(Boolean).join(" / ") || "-";
         cells[3].textContent = product.serialNumber || "-";
+
         row.querySelector(".edit").addEventListener("click", () => fillFormForEdit(product));
         row.querySelector(".delete").addEventListener("click", () => deleteProduct(product.id, product.name));
         tableBody.appendChild(row);
@@ -63,6 +101,7 @@ function fillFormForEdit(product) {
     document.getElementById("serial-number").value = product.serialNumber || "";
     document.getElementById("notes").value = product.notes || "";
     showMessage(`Editing ${product.name}.`);
+    document.getElementById("name").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function resetForm() {

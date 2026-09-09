@@ -13,15 +13,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -123,5 +130,72 @@ class AuthControllerTest {
 
         mockMvc.perform(get("/api/health"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void changePasswordReturnsOkWhenValid() throws Exception {
+        User user = new User(1L, "John Doe", "john@example.com", "encoded", LocalDateTime.now());
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        doNothing().when(userService).changePassword(eq(1L), eq("current123"), eq("newpassword123"));
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList())
+        );
+
+        mockMvc.perform(post("/api/auth/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"current123\",\"newPassword\":\"newpassword123\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Password changed successfully"));
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void changePasswordRejectsIncorrectCurrentPassword() throws Exception {
+        User user = new User(1L, "John Doe", "john@example.com", "encoded", LocalDateTime.now());
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        doThrow(new IllegalArgumentException("Current password is incorrect"))
+                .when(userService).changePassword(eq(1L), eq("wrong"), any(String.class));
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList())
+        );
+
+        mockMvc.perform(post("/api/auth/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"wrong\",\"newPassword\":\"newpassword123\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void changePasswordRejectsShortNewPassword() throws Exception {
+        User user = new User(1L, "John Doe", "john@example.com", "encoded", LocalDateTime.now());
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        doThrow(new IllegalArgumentException("New password must be at least 6 characters"))
+                .when(userService).changePassword(eq(1L), any(String.class), eq("123"));
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList())
+        );
+
+        mockMvc.perform(post("/api/auth/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"current123\",\"newPassword\":\"123\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void changePasswordReturnsUnauthenticatedWhenNoSession() throws Exception {
+        mockMvc.perform(post("/api/auth/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"current123\",\"newPassword\":\"newpassword123\"}"))
+                .andExpect(status().isUnauthorized());
     }
 }

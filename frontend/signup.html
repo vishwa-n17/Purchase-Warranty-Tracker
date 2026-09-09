@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | Purchase & Warranty Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-lg);
+            background: var(--color-gray-100);
+        }
+
+        .auth-card {
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--color-gray-200);
+            padding: var(--spacing-xl);
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .auth-header .brand-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--color-primary);
+            border-radius: var(--radius-md);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-white);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .auth-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-gray-900);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .auth-header p {
+            font-size: 0.875rem;
+            color: var(--color-gray-500);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: var(--spacing-lg);
+            font-size: 0.875rem;
+            color: var(--color-gray-500);
+        }
+
+        .auth-footer a {
+            color: var(--color-primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="brand-icon">P</div>
+                <h1>Create account</h1>
+                <p>Get started with Purchase & Warranty Tracker</p>
+            </div>
+
+            <p id="message" class="message" aria-live="polite"></p>
+
+            <form id="signup-form">
+                <div class="form-group">
+                    <label class="form-label" for="name">Full name</label>
+                    <input id="name" type="text" class="form-input" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input id="email" type="email" class="form-input" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input id="password" type="password" class="form-input" required placeholder="At least 6 characters">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="confirm-password">Confirm password</label>
+                    <input id="confirm-password" type="password" class="form-input" required placeholder="Repeat your password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: var(--spacing-md);">Create account</button>
+            </form>
+
+            <div class="auth-footer">
+                Already have an account? <a href="login.html">Sign in</a>
+            </div>
+        </div>
+    </div>
+    <script src="js/auth.js"></script>
+    <script>
+        document.getElementById('signup-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (password !== confirmPassword) {
+                showAuthMessage('Passwords do not match', true);
+                return;
+            }
+
+            await handleSignup(name, email, password);
+        });
+    </script>
+</body>
+</html>

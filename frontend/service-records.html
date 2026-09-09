@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warranties | Purchase &amp; Warranty Tracker</title>
+    <title>Service Records | Purchase &amp; Warranty Tracker</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -19,8 +19,8 @@
                     <a href="dashboard.html" class="nav-link">Dashboard</a>
                     <a href="index.html" class="nav-link">Products</a>
                     <a href="purchases.html" class="nav-link">Purchases</a>
-                    <a href="warranties.html" class="nav-link active">Warranties</a>
-                    <a href="service-records.html" class="nav-link">Service Records</a>
+                    <a href="warranties.html" class="nav-link">Warranties</a>
+                    <a href="service-records.html" class="nav-link active">Service Records</a>
                 </nav>
                 <div class="header-actions">
                     <div class="user-menu hidden" id="user-menu">
@@ -41,18 +41,18 @@
         </header>
         <main class="main-content app-body">
             <div class="page-header">
-                <h1 class="page-title">Warranties</h1>
-                <p class="page-subtitle">Track warranty coverage, expiry dates, and status.</p>
+                <h1 class="page-title">Service Records</h1>
+                <p class="page-subtitle">Log and review repairs, maintenance, inspections, and upgrades.</p>
             </div>
             <p id="message" class="message" aria-live="polite"></p>
 
-            <section class="card mb-lg" aria-labelledby="warranty-form-heading">
+            <section class="card mb-lg" aria-labelledby="service-form-heading">
                 <div class="card-header">
-                    <h2 id="warranty-form-heading" class="card-title">Add or edit a warranty</h2>
+                    <h2 id="service-form-heading" class="card-title">Log or edit a service record</h2>
                 </div>
                 <div class="card-body">
-                    <form id="warranty-form">
-                        <input id="warranty-id" type="hidden">
+                    <form id="service-record-form">
+                        <input id="service-record-id" type="hidden">
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label" for="product-id">Product</label>
@@ -61,39 +61,46 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="start-date">Start date</label>
-                                <input id="start-date" type="date" class="form-input" required>
+                                <label class="form-label" for="service-date">Service date</label>
+                                <input id="service-date" type="date" class="form-input" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="form-label" for="duration-months">Duration (in months)</label>
-                                <input id="duration-months" type="number" min="1" max="120" class="form-input" required placeholder="e.g. 12, 24, 36">
+                                <label class="form-label" for="service-type">Service type</label>
+                                <select id="service-type" class="form-select" required>
+                                    <option value="REPAIR">REPAIR</option>
+                                    <option value="MAINTENANCE">MAINTENANCE</option>
+                                    <option value="INSPECTION">INSPECTION</option>
+                                    <option value="UPGRADE">UPGRADE</option>
+                                </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="warranty-provider">Warranty provider</label>
-                                <input id="warranty-provider" class="form-input" required maxlength="150" placeholder="e.g. Lenovo, Samsung Care, Retailer">
+                                <label class="form-label" for="provider">Service provider</label>
+                                <input id="provider" class="form-input" required maxlength="100" placeholder="e.g. Authorized Service Center, Quick Repair">
                             </div>
                         </div>
-                        <div class="form-group" id="status-group" style="display: none;">
-                            <label class="form-label" for="warranty-status">Status</label>
-                            <select id="warranty-status" class="form-select">
-                                <option value="ACTIVE">ACTIVE</option>
-                                <option value="EXPIRED">EXPIRED</option>
-                                <option value="VOID">VOID (Voided)</option>
-                            </select>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="cost">Cost (₹)</label>
+                                <input id="cost" type="number" step="0.01" min="0" class="form-input" required placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="description">Problem / service description</label>
+                                <textarea id="description" class="form-textarea" required maxlength="500" placeholder="Describe the issue or service performed..."></textarea>
+                            </div>
                         </div>
                         <div class="form-actions">
-                            <button type="submit" id="submit-warranty-button" class="btn btn-primary">Save warranty</button>
+                            <button type="submit" id="submit-service-button" class="btn btn-primary">Save service record</button>
                             <button id="cancel-edit-button" type="button" class="btn btn-secondary">Cancel edit</button>
                         </div>
                     </form>
                 </div>
             </section>
 
-            <section class="card" aria-labelledby="warranty-list-heading">
+            <section class="card" aria-labelledby="service-list-heading">
                 <div class="card-header">
-                    <h2 id="warranty-list-heading" class="card-title">Warranty Records</h2>
+                    <h2 id="service-list-heading" class="card-title">Service History</h2>
                     <button id="refresh-button" type="button" class="btn btn-secondary btn-sm">Refresh list</button>
                 </div>
                 <div class="card-body" style="padding: 0;">
@@ -102,22 +109,22 @@
                             <thead>
                                 <tr>
                                     <th>Product</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
                                     <th>Provider</th>
-                                    <th>Start Date</th>
-                                    <th>Duration</th>
-                                    <th>Expiry Date</th>
-                                    <th>Status</th>
+                                    <th>Cost</th>
+                                    <th>Description</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="warranty-table-body"></tbody>
+                            <tbody id="service-table-body"></tbody>
                         </table>
                     </div>
                 </div>
             </section>
         </main>
     </div>
-    <script src="js/warranties.js"></script>
+    <script src="js/service-records.js"></script>
     <script>
         (async function guard() {
             const user = await checkAuth();

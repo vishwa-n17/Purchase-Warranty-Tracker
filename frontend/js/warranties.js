@@ -21,7 +21,20 @@ let productsMap = new Map();
 
 function showMessage(text, isError = false) {
     messageEl.textContent = text;
-    messageEl.className = `message ${isError ? "error" : "success"}`;
+    messageEl.className = `message ${isError ? "error" : "success"} visible`;
+}
+
+function getStatusBadge(status) {
+    switch (status) {
+        case "ACTIVE":
+            return '<span class="badge badge-active">ACTIVE</span>';
+        case "EXPIRED":
+            return '<span class="badge badge-expired">EXPIRED</span>';
+        case "VOID":
+            return '<span class="badge badge-void">VOID</span>';
+        default:
+            return `<span class="badge badge-secondary">${status || "UNKNOWN"}</span>`;
+    }
 }
 
 async function getErrorMessage(response) {
@@ -57,36 +70,50 @@ function getProductDisplayName(productId) {
     return brandModel ? `${product.name} (${brandModel})` : product.name;
 }
 
-function getStatusBadge(status) {
-    switch (status) {
-        case "ACTIVE":
-            return '<span class="badge badge-active">ACTIVE</span>';
-        case "EXPIRED":
-            return '<span class="badge badge-expired">EXPIRED</span>';
-        case "VOID":
-            return '<span class="badge badge-void">VOID</span>';
-        default:
-            return `<span class="badge">${status || "UNKNOWN"}</span>`;
-    }
+function showTableLoading() {
+    warrantyTableBody.innerHTML = `
+        <tr>
+            <td colspan="7">
+                <div class="loading-state">
+                    <div class="loading-state-spinner"></div>
+                    <div class="loading-state-title">Loading warranties…</div>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function showTableEmpty() {
+    warrantyTableBody.innerHTML = `
+        <tr>
+            <td colspan="7">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🛡️</div>
+                    <div class="empty-state-title">No warranties recorded yet</div>
+                    <div class="empty-state-text">Add your first warranty using the form above.</div>
+                </div>
+            </td>
+        </tr>
+    `;
 }
 
 async function loadWarranties() {
     try {
-        warrantyTableBody.innerHTML = '<tr><td colspan="7">Loading warranties…</td></tr>';
+        showTableLoading();
         const response = await fetch(warrantiesApiUrl);
         if (!response.ok) throw new Error(await getErrorMessage(response));
         const warranties = await response.json();
         renderWarranties(warranties);
     } catch (error) {
-        warrantyTableBody.innerHTML = '<tr><td colspan="7">Failed to load warranties.</td></tr>';
         showMessage(error.message || "Could not load warranties.", true);
+        showTableEmpty();
     }
 }
 
 function renderWarranties(warranties) {
     warrantyTableBody.innerHTML = "";
     if (!warranties || warranties.length === 0) {
-        warrantyTableBody.innerHTML = '<tr><td colspan="7">No warranties recorded yet.</td></tr>';
+        showTableEmpty();
         return;
     }
 
@@ -95,13 +122,13 @@ function renderWarranties(warranties) {
         row.innerHTML = `
             <td></td>
             <td></td>
+            <td class="text-date"></td>
             <td></td>
-            <td></td>
-            <td></td>
+            <td class="text-date"></td>
             <td></td>
             <td>
-                <button type="button" class="edit">Edit</button>
-                <button type="button" class="delete secondary">Delete</button>
+                <button type="button" class="btn btn-sm btn-primary edit">Edit</button>
+                <button type="button" class="btn btn-sm btn-danger delete">Delete</button>
             </td>
         `;
 
@@ -145,7 +172,7 @@ function fillFormForEdit(warranty) {
     statusGroup.style.display = "block";
     submitWarrantyButton.textContent = "Update warranty";
     showMessage(`Editing warranty #${warranty.id} for "${getProductDisplayName(warranty.productId)}".`);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("warranty-form").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function resetForm() {
@@ -216,4 +243,3 @@ async function init() {
 }
 
 init();
-

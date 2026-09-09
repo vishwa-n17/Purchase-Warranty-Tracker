@@ -54,6 +54,11 @@ public class AuthController {
         public String password;
     }
 
+    public static class ChangePasswordRequest {
+        public String currentPassword;
+        public String newPassword;
+    }
+
     public static class UserResponse {
         public Long id;
         public String name;
@@ -96,6 +101,22 @@ public class AuthController {
         SecurityContextHolder.clearContext();
         Map<String, String> response = new HashMap<>();
         response.put("message", "Logged out successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Map<String, String>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        User user = (User) authentication.getPrincipal();
+        userService.changePassword(user.getId(), request.currentPassword, request.newPassword);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Password changed successfully");
         return ResponseEntity.ok(response);
     }
 

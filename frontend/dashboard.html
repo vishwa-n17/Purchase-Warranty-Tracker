@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Purchase &amp; Warranty Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <header class="app-header">
+            <div class="header-inner">
+                <a href="dashboard.html" class="brand">
+                    <div class="brand-icon">P</div>
+                    <span>Purchase &amp; Warranty Tracker</span>
+                </a>
+                <button type="button" class="nav-toggle" aria-label="Toggle navigation">☰</button>
+                <nav class="main-nav">
+                    <a href="dashboard.html" class="nav-link active">Dashboard</a>
+                    <a href="index.html" class="nav-link">Products</a>
+                    <a href="purchases.html" class="nav-link">Purchases</a>
+                    <a href="warranties.html" class="nav-link">Warranties</a>
+                    <a href="service-records.html" class="nav-link">Service Records</a>
+                </nav>
+                <div class="header-actions">
+                    <div class="user-menu hidden" id="user-menu">
+                        <button type="button" class="user-menu-trigger" id="user-menu-trigger" aria-haspopup="true" aria-expanded="false">
+                            <span class="user-avatar" id="user-avatar">U</span>
+                            <span class="user-name" id="user-name-display">User</span>
+                            <span class="user-menu-arrow">▼</span>
+                        </button>
+                        <div class="user-menu-dropdown" id="user-menu-dropdown">
+                            <a href="profile.html" class="user-menu-item">Profile</a>
+                            <a href="settings.html" class="user-menu-item">Settings</a>
+                            <div class="user-menu-divider"></div>
+                            <button type="button" class="user-menu-item user-menu-logout" id="header-logout">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="main-content app-body">
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">System overview and key metrics at a glance.</p>
+            </div>
+            <p id="message" class="message" aria-live="polite"></p>
+
+            <section class="stats-grid" aria-label="System Metrics">
+                <div class="stat-card">
+                    <div class="stat-card-icon primary">📦</div>
+                    <div class="stat-card-label">Total Products</div>
+                    <div class="stat-card-value" id="total-products">-</div>
+                    <div class="stat-card-subtext">Registered items</div>
+                </div>
+
+                <div class="stat-card card-purple">
+                    <div class="stat-card-icon purple">💰</div>
+                    <div class="stat-card-label">Total Spend</div>
+                    <div class="stat-card-value" id="total-spent">-</div>
+                    <div class="stat-card-subtext" id="spend-breakdown">Purchases + Repairs</div>
+                </div>
+
+                <div class="stat-card card-green">
+                    <div class="stat-card-icon success">🛡️</div>
+                    <div class="stat-card-label">Active Warranties</div>
+                    <div class="stat-card-value" id="active-warranties">-</div>
+                    <div class="stat-card-subtext">
+                        <span class="badge badge-active">Protected</span>
+                    </div>
+                </div>
+
+                <div class="stat-card card-red">
+                    <div class="stat-card-icon danger">⚠️</div>
+                    <div class="stat-card-label">Expired Warranties</div>
+                    <div class="stat-card-value" id="expired-warranties">-</div>
+                    <div class="stat-card-subtext">
+                        <span class="badge badge-expired">Expired</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card" aria-labelledby="quick-navigation-heading">
+                <div class="card-header">
+                    <h2 id="quick-navigation-heading" class="card-title">Quick Actions</h2>
+                    <button id="refresh-button" type="button" class="btn btn-secondary btn-sm">Refresh statistics</button>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted" style="margin-bottom: var(--spacing-md);">Select a module to manage your data.</p>
+                    <div class="quick-actions">
+                        <a href="index.html" class="quick-action-card qa-product">
+                            <div class="quick-action-icon">📦</div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Add Product</div>
+                                <div class="quick-action-description">Register a new product in your inventory.</div>
+                                <span class="quick-action-cta">Add product <span aria-hidden="true">→</span></span>
+                            </div>
+                        </a>
+                        <a href="purchases.html" class="quick-action-card qa-purchase">
+                            <div class="quick-action-icon">🛒</div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Record Purchase</div>
+                                <div class="quick-action-description">Track a new purchase and attach a receipt.</div>
+                                <span class="quick-action-cta">Add purchase <span aria-hidden="true">→</span></span>
+                            </div>
+                        </a>
+                        <a href="warranties.html" class="quick-action-card qa-warranty">
+                            <div class="quick-action-icon">🛡️</div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Check Warranties</div>
+                                <div class="quick-action-description">View warranty status and expiry dates.</div>
+                                <span class="quick-action-cta">View warranties <span aria-hidden="true">→</span></span>
+                            </div>
+                        </a>
+                        <a href="service-records.html" class="quick-action-card qa-service">
+                            <div class="quick-action-icon">🔧</div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Add Service Record</div>
+                                <div class="quick-action-description">Record maintenance and service costs.</div>
+                                <span class="quick-action-cta">Add service <span aria-hidden="true">→</span></span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="js/dashboard.js"></script>
+    <script>
+        (async function guard() {
+            const user = await checkAuth();
+            if (!user) return;
+            updateAuthUI(user);
+            initUserMenu();
+        })();
+    </script>
+</body>
+</html>

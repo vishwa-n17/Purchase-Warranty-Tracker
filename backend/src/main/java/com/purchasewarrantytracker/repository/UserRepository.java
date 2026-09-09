@@ -79,4 +79,12 @@ public class UserRepository {
         user.setId(generatedId.longValue());
         return user;
     }
+
+    public int updatePassword(Long userId, String encodedPassword) {
+        return jdbcTemplate.update(
+                "UPDATE users SET password = ? WHERE id = ?",
+                encodedPassword,
+                userId
+        );
+    }
 }

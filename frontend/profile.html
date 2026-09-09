@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | Purchase & Warranty Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-xl);
+            background: var(--color-primary);
+            color: var(--color-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .profile-identity h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--color-gray-900);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .profile-identity p {
+            font-size: 0.9375rem;
+            color: var(--color-gray-500);
+            margin: 0;
+        }
+
+        .profile-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .profile-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-gray-900);
+            margin-bottom: var(--spacing-md);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .profile-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .profile-stat-card {
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-gray-200);
+            transition: box-shadow var(--transition-base), transform var(--transition-base);
+        }
+
+        .profile-stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .profile-stat-label {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--color-gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .profile-stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--color-gray-900);
+            line-height: 1.2;
+        }
+
+        .profile-stat-subtext {
+            font-size: 0.8125rem;
+            color: var(--color-gray-500);
+            margin-top: var(--spacing-xs);
+        }
+
+        .profile-detail-list {
+            display: grid;
+            gap: var(--spacing-md);
+        }
+
+        .profile-detail-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-gray-200);
+        }
+
+        .profile-detail-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-gray-500);
+        }
+
+        .profile-detail-value {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--color-gray-900);
+            text-align: right;
+            word-break: break-word;
+        }
+
+        @media (max-width: 640px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-detail-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .profile-detail-value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <header class="app-header">
+            <div class="header-inner">
+                <a href="dashboard.html" class="brand">
+                    <div class="brand-icon">P</div>
+                    <span>Purchase &amp; Warranty Tracker</span>
+                </a>
+                <button type="button" class="nav-toggle" aria-label="Toggle navigation">☰</button>
+                <nav class="main-nav">
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="index.html" class="nav-link">Products</a>
+                    <a href="purchases.html" class="nav-link">Purchases</a>
+                    <a href="warranties.html" class="nav-link">Warranties</a>
+                    <a href="service-records.html" class="nav-link">Service Records</a>
+                </nav>
+                <div class="header-actions">
+                    <div class="user-menu hidden" id="user-menu">
+                        <button type="button" class="user-menu-trigger" id="user-menu-trigger" aria-haspopup="true" aria-expanded="false">
+                            <span class="user-avatar" id="user-avatar">U</span>
+                            <span class="user-name" id="user-name-display">User</span>
+                            <span class="user-menu-arrow">▼</span>
+                        </button>
+                        <div class="user-menu-dropdown" id="user-menu-dropdown">
+                            <a href="profile.html" class="user-menu-item">Profile</a>
+                            <a href="settings.html" class="user-menu-item">Settings</a>
+                            <div class="user-menu-divider"></div>
+                            <button type="button" class="user-menu-item user-menu-logout" id="header-logout">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="main-content app-body">
+            <div class="page-header">
+                <h1 class="page-title">Profile</h1>
+                <p class="page-subtitle">Your account information and personal statistics.</p>
+            </div>
+            <p id="message" class="message" aria-live="polite"></p>
+
+            <section class="profile-section" aria-labelledby="profile-identity-heading">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="profile-avatar">U</div>
+                    <div class="profile-identity">
+                        <h1 id="profile-name">Loading…</h1>
+                        <p id="profile-email">Loading…</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="profile-section" aria-labelledby="profile-stats-heading">
+                <h2 id="profile-stats-heading" class="profile-section-title">Statistics</h2>
+                <div class="profile-stats-grid">
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-label">Products</div>
+                        <div class="profile-stat-value" id="profile-products">-</div>
+                        <div class="profile-stat-subtext">Registered items</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-label">Purchase Spend</div>
+                        <div class="profile-stat-value" id="profile-purchase-spend">-</div>
+                        <div class="profile-stat-subtext">Total purchase cost</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-label">Service Spend</div>
+                        <div class="profile-stat-value" id="profile-service-spend">-</div>
+                        <div class="profile-stat-subtext">Total service cost</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-label">Active Warranties</div>
+                        <div class="profile-stat-value" id="profile-active-warranties">-</div>
+                        <div class="profile-stat-subtext">Currently protected</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-label">Expired Warranties</div>
+                        <div class="profile-stat-value" id="profile-expired-warranties">-</div>
+                        <div class="profile-stat-subtext">No longer covered</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="profile-section" aria-labelledby="profile-details-heading">
+                <h2 id="profile-details-heading" class="profile-section-title">Account Details</h2>
+                <div class="profile-detail-list">
+                    <div class="profile-detail-item">
+                        <span class="profile-detail-label">Name</span>
+                        <span class="profile-detail-value" id="profile-detail-name">-</span>
+                    </div>
+                    <div class="profile-detail-item">
+                        <span class="profile-detail-label">Email</span>
+                        <span class="profile-detail-value" id="profile-detail-email">-</span>
+                    </div>
+                    <div class="profile-detail-item">
+                        <span class="profile-detail-label">User ID</span>
+                        <span class="profile-detail-value" id="profile-detail-id">-</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="js/auth.js"></script>
+    <script src="js/profile.js"></script>
+</body>
+</html>
