@@ -10,9 +10,9 @@ function showAuthMessage(text, isError = false) {
 async function getErrorMessage(response) {
     try {
         const error = await response.json();
-        return error?.message || "The request could not be completed.";
+        return error?.message || "Something went wrong. Please try again.";
     } catch {
-        return "The request could not be completed.";
+        return "Something went wrong. Please try again.";
     }
 }
 
@@ -164,7 +164,7 @@ async function changePassword(currentPassword, newPassword) {
 
         return { success: true };
     } catch (error) {
-        return { success: false, message: error.message };
+        return { success: false, message: "Could not change password. Please check your current password and try again." };
     }
 }
 
@@ -182,6 +182,108 @@ async function deleteAccount() {
 
         return { success: true };
     } catch (error) {
-        return { success: false, message: error.message };
+        return { success: false, message: "Could not delete your account. Please try again." };
     }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.querySelector('.nav-toggle');
+    const nav = document.querySelector('.main-nav');
+    if (toggle && nav) {
+        toggle.addEventListener('click', () => {
+            nav.classList.toggle('open');
+            const expanded = nav.classList.contains('open');
+            toggle.setAttribute('aria-expanded', String(expanded));
+        });
+    }
+});
+
+async function loadNotifications() {
+    try {
+        const response = await fetch(`${API_BASE}/notifications`, {
+            credentials: "include"
+        });
+        if (!response.ok) return [];
+        return await response.json();
+    } catch {
+        return [];
+    }
+}
+
+function renderNotificationBadge(count) {
+    const badge = document.getElementById("notification-badge");
+    if (!badge) return;
+    if (count > 0) {
+        badge.textContent = count > 9 ? "9+" : count;
+        badge.style.display = "flex";
+    } else {
+        badge.style.display = "none";
+    }
+}
+
+function renderNotificationsList(notifications) {
+    const list = document.getElementById("notification-list");
+    const empty = document.getElementById("notification-empty");
+    if (!list) return;
+    list.innerHTML = "";
+    if (!notifications || notifications.length === 0) {
+        if (empty) empty.style.display = "block";
+        return;
+    }
+    if (empty) empty.style.display = "none";
+    notifications.forEach(n => {
+        const item = document.createElement("div");
+        item.className = "notification-item";
+        item.innerHTML = `
+            <div class="notification-item-icon">${n.icon || "🔔"}</div>
+            <div class="notification-item-content">
+                <div class="notification-item-title">${n.title || "Notification"}</div>
+                <div class="notification-item-text">${n.description || ""}</div>
+            </div>
+        `;
+        list.appendChild(item);
+    });
+}
+
+async function refreshNotifications() {
+    const notifications = await loadNotifications();
+    renderNotificationBadge(notifications.length);
+    renderNotificationsList(notifications);
+}
+
+function initNotifications() {
+    const trigger = document.getElementById("notification-trigger");
+    const dropdown = document.getElementById("notification-dropdown");
+    if (!trigger || !dropdown) return;
+
+    trigger.addEventListener("click", async function(event) {
+        event.stopPropagation();
+        const isOpen = dropdown.classList.contains("open");
+        dropdown.classList.toggle("open", !isOpen);
+        trigger.setAttribute("aria-expanded", String(!isOpen));
+        if (!isOpen) {
+            await refreshNotifications();
+        }
+    });
+
+    document.addEventListener("click", function(event) {
+        if (!dropdown.contains(event.target)) {
+            dropdown.classList.remove("open");
+            trigger.setAttribute("aria-expanded", "false");
+        }
+    });
+}
+
+function initSearch() {
+    const searchInput = document.getElementById("global-search");
+    const searchForm = document.getElementById("global-search-form");
+    if (!searchInput || !searchForm) return;
+
+    searchForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        const q = searchInput.value.trim();
+        if (q) {
+            window.location.href = `search-results.html?q=${encodeURIComponent(q)}`;
+        }
+    });
 }

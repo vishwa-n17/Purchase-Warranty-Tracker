@@ -4,7 +4,10 @@ import com.purchasewarrantytracker.config.TestSecurityConfig;
 import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
 import com.purchasewarrantytracker.exception.ProductNotFoundException;
 import com.purchasewarrantytracker.model.Product;
+import com.purchasewarrantytracker.model.User;
+import com.purchasewarrantytracker.security.AuthenticatedUserProvider;
 import com.purchasewarrantytracker.service.ProductService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,9 +21,11 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -36,6 +41,15 @@ class ProductControllerTest {
 
     @MockBean
     private ProductService productService;
+
+    @MockBean
+    private AuthenticatedUserProvider authenticatedUserProvider;
+
+    @BeforeEach
+    void setUp() {
+        User currentUser = new User(1L, "Test User", "test@example.com", "encoded", null);
+        when(authenticatedUserProvider.getCurrentUser()).thenReturn(currentUser);
+    }
 
     @Test
     void createReturnsCreatedProductAndLocationHeader() throws Exception {
@@ -98,5 +112,21 @@ class ProductControllerTest {
 
         mockMvc.perform(delete("/api/products/1"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void optionsPreflightReturnsOk() throws Exception {
+        mockMvc.perform(options("/api/products"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getProductsReturnsUnauthenticatedWhenNoSession() throws Exception {
+        doThrow(new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNAUTHORIZED, "Unauthorized"))
+                .when(authenticatedUserProvider).getCurrentUser();
+
+        mockMvc.perform(get("/api/products"))
+                .andExpect(status().isUnauthorized());
     }
 }

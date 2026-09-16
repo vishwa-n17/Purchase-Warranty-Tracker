@@ -1,8 +1,8 @@
 USE purchase_warranty_tracker;
 
 -- Demo user: password is "password123" (BCrypt hashed)
-INSERT IGNORE INTO users (name, email, password)
-VALUES ('Demo User', 'demo@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p092ld9xL5mF4f8Yf5qYqO');
+INSERT IGNORE INTO users (name, email, password, public_user_id)
+VALUES ('Demo User', 'demo@example.com', '$2a$10$gPyje6ziAN/nMCV6gUAKn.hlOkeGDnpDa8wBnTNbiwEkeeGulGg..', 'USR-DEMOUSER01');
 
 INSERT INTO products (user_id, name, category, brand, model, serial_number, notes)
 VALUES

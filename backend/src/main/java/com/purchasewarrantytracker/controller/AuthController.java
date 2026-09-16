@@ -1,7 +1,11 @@
 package com.purchasewarrantytracker.controller;
 
 import com.purchasewarrantytracker.model.User;
+import com.purchasewarrantytracker.security.AuthenticatedUserProvider;
 import com.purchasewarrantytracker.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,8 +13,9 @@ import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,9 +30,11 @@ import java.util.Map;
 public class AuthController {
 
     private final UserService userService;
+    private final AuthenticatedUserProvider authenticatedUserProvider;
 
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, AuthenticatedUserProvider authenticatedUserProvider) {
         this.userService = userService;
+        this.authenticatedUserProvider = authenticatedUserProvider;
     }
 
     public static class SignupRequest {
@@ -63,16 +70,18 @@ public class AuthController {
         public Long id;
         public String name;
         public String email;
+        public String publicUserId;
 
-        public UserResponse(Long id, String name, String email) {
+        public UserResponse(Long id, String name, String email, String publicUserId) {
             this.id = id;
             this.name = name;
             this.email = email;
+            this.publicUserId = publicUserId;
         }
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignupRequest request) {
+    public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignupRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         User user = new User();
         user.setName(request.name);
         user.setEmail(request.email);
@@ -80,19 +89,19 @@ public class AuthController {
 
         User createdUser = userService.signup(user);
 
-        authenticateUser(createdUser);
+        authenticateUser(createdUser, httpRequest, httpResponse);
 
-        UserResponse response = new UserResponse(createdUser.getId(), createdUser.getName(), createdUser.getEmail());
+        UserResponse response = new UserResponse(createdUser.getId(), createdUser.getName(), createdUser.getEmail(), createdUser.getPublicUserId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         User user = userService.login(request.email, request.password);
 
-        authenticateUser(user);
+        authenticateUser(user, httpRequest, httpResponse);
 
-        UserResponse response = new UserResponse(user.getId(), user.getName(), user.getEmail());
+        UserResponse response = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getPublicUserId());
         return ResponseEntity.ok(response);
     }
 
@@ -106,13 +115,7 @@ public class AuthController {
 
     @PostMapping("/change-password")
     public ResponseEntity<Map<String, String>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        User user = (User) authentication.getPrincipal();
+        User user = authenticatedUserProvider.getCurrentUser();
         userService.changePassword(user.getId(), request.currentPassword, request.newPassword);
 
         Map<String, String> response = new HashMap<>();
@@ -122,20 +125,19 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        User user = (User) authentication.getPrincipal();
-        UserResponse response = new UserResponse(user.getId(), user.getName(), user.getEmail());
+        User user = authenticatedUserProvider.getCurrentUser();
+        UserResponse response = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getPublicUserId());
         return ResponseEntity.ok(response);
     }
 
-    private void authenticateUser(User user) {
+    private void authenticateUser(User user, HttpServletRequest request, HttpServletResponse response) {
+        HttpSession session = request.getSession(true);
+
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(user, null, java.util.Collections.emptyList());
-        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authenticationToken);
+        SecurityContextHolder.setContext(context);
+        new HttpSessionSecurityContextRepository().saveContext(context, request, response);
     }
 }

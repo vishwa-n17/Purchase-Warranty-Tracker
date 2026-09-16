@@ -101,7 +101,7 @@ public class WarrantyService {
         }
     }
 
-    private void refreshStatus(Warranty warranty) {
+    public void refreshStatus(Warranty warranty) {
         if (warranty != null && warranty.getStatus() != WarrantyStatus.VOID && warranty.getExpiryDate() != null) {
             if (LocalDate.now().isAfter(warranty.getExpiryDate())) {
                 warranty.setStatus(WarrantyStatus.EXPIRED);

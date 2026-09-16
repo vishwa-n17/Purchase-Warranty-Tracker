@@ -4,9 +4,12 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class User {
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private Long id;
 
@@ -22,6 +25,8 @@ public class User {
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
+
+    private String publicUserId;
 
     private LocalDateTime createdAt;
 
@@ -74,5 +79,13 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getPublicUserId() {
+        return publicUserId;
+    }
+
+    public void setPublicUserId(String publicUserId) {
+        this.publicUserId = publicUserId;
     }
 }

@@ -1,4 +1,3 @@
-const API_BASE = "http://localhost:8080/api";
 const purchasesApiUrl = `${API_BASE}/purchases`;
 const productsApiUrl = `${API_BASE}/products`;
 
@@ -50,12 +49,14 @@ function formatCurrency(amount) {
 
 async function getErrorMessage(response) {
     const error = await response.json().catch(() => null);
-    return error?.message || "The request could not be completed.";
+    return error?.message || "Something went wrong. Please try again.";
 }
 
 async function loadProducts() {
     try {
-        const response = await fetch(productsApiUrl);
+        const response = await fetch(productsApiUrl, {
+            credentials: "include"
+        });
         if (!response.ok) throw new Error(await getErrorMessage(response));
         productsCache = await response.json();
         productsMap.clear();
@@ -70,7 +71,8 @@ async function loadProducts() {
             productSelect.appendChild(option);
         });
     } catch (error) {
-        showMessage(error.message || "Could not load products for selection.", true);
+        showMessage("Could not load products for selection.", true);
+        console.error("Purchases products load error:", error);
     }
 }
 
@@ -114,13 +116,16 @@ function showTableEmpty() {
 async function loadPurchases() {
     try {
         showTableLoading();
-        const response = await fetch(purchasesApiUrl);
+        const response = await fetch(purchasesApiUrl, {
+            credentials: "include"
+        });
         if (!response.ok) throw new Error(await getErrorMessage(response));
         const purchases = await response.json();
         renderPurchases(purchases);
     } catch (error) {
-        showMessage(error.message || "Could not load purchases.", true);
+        showMessage("Could not load purchases.", true);
         showTableEmpty();
+        console.error("Purchases load error:", error);
     }
 }
 
@@ -141,6 +146,7 @@ function renderPurchases(purchases) {
     purchases.forEach(purchase => {
         const row = document.createElement("tr");
         row.innerHTML = `
+            <td style="width:48px"></td>
             <td></td>
             <td class="text-date"></td>
             <td class="text-currency"></td>
@@ -149,20 +155,22 @@ function renderPurchases(purchases) {
             <td>
                 <button type="button" class="btn btn-sm btn-secondary receipt-btn">Receipt</button>
             </td>
-            <td>
+            <td style="width:140px">
                 <button type="button" class="btn btn-sm btn-primary edit">Edit</button>
                 <button type="button" class="btn btn-sm btn-danger delete">Delete</button>
             </td>
         `;
 
         const cells = row.querySelectorAll("td");
-        cells[0].textContent = getProductDisplayName(purchase.productId);
-        cells[1].textContent = purchase.purchaseDate;
-        cells[1].className = "text-date";
-        cells[2].textContent = formatCurrency(purchase.purchasePrice);
-        cells[2].className = "text-currency";
-        cells[3].textContent = purchase.storeName;
-        cells[4].innerHTML = getPaymentBadge(purchase.paymentMethod);
+        cells[0].innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`;
+        cells[0].style.cssText = "width:48px;text-align:center;color:var(--color-text-tertiary)";
+        cells[1].textContent = getProductDisplayName(purchase.productId);
+        cells[2].textContent = purchase.purchaseDate;
+        cells[2].className = "text-date";
+        cells[3].textContent = formatCurrency(purchase.purchasePrice);
+        cells[3].className = "text-currency";
+        cells[4].textContent = purchase.storeName;
+        cells[5].innerHTML = getPaymentBadge(purchase.paymentMethod);
 
         row.querySelector(".receipt-btn").addEventListener("click", () => openReceiptSection(purchase));
         row.querySelector(".edit").addEventListener("click", () => fillPurchaseFormForEdit(purchase));
@@ -200,7 +208,8 @@ purchaseForm.addEventListener("submit", async (event) => {
         const response = await fetch(url, {
             method,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(getPurchaseFromForm())
+            body: JSON.stringify(getPurchaseFromForm()),
+            credentials: "include"
         });
 
         if (!response.ok) throw new Error(await getErrorMessage(response));
@@ -209,14 +218,18 @@ purchaseForm.addEventListener("submit", async (event) => {
         showMessage(`Purchase ${id ? "updated" : "recorded"} successfully.`);
         loadPurchases();
     } catch (error) {
-        showMessage(error.message || "Could not save the purchase.", true);
+        showMessage("Could not save the purchase. Please try again.", true);
+        console.error("Purchase save error:", error);
     }
 });
 
 async function deletePurchase(id, productName) {
     if (!window.confirm(`Delete purchase #${id} for "${productName}"? Any attached receipt will also be deleted.`)) return;
     try {
-        const response = await fetch(`${purchasesApiUrl}/${id}`, { method: "DELETE" });
+        const response = await fetch(`${purchasesApiUrl}/${id}`, {
+            method: "DELETE",
+            credentials: "include"
+        });
         if (!response.ok) throw new Error(await getErrorMessage(response));
 
         showMessage("Purchase deleted successfully.");
@@ -225,7 +238,8 @@ async function deletePurchase(id, productName) {
         }
         loadPurchases();
     } catch (error) {
-        showMessage(error.message || "Could not delete the purchase.", true);
+        showMessage("Could not delete the purchase. Please try again.", true);
+        console.error("Purchase delete error:", error);
     }
 }
 
@@ -237,7 +251,9 @@ async function openReceiptSection(purchase) {
     receiptSection.scrollIntoView({ behavior: "smooth", block: "start" });
 
     try {
-        const response = await fetch(`${purchasesApiUrl}/${purchase.id}/receipt`);
+        const response = await fetch(`${purchasesApiUrl}/${purchase.id}/receipt`, {
+            credentials: "include"
+        });
         if (response.ok) {
             const receipt = await response.json();
             currentReceiptExists = true;
@@ -262,7 +278,8 @@ async function openReceiptSection(purchase) {
         receiptDateInput.value = purchase.purchaseDate || "";
         saveReceiptButton.textContent = "Attach receipt";
         deleteReceiptButton.style.display = "none";
-        showReceiptMessage(error.message || "Error checking receipt status.", true);
+        showReceiptMessage("Could not check receipt status. Please try again.", true);
+        console.error("Receipt check error:", error);
     }
 }
 
@@ -290,7 +307,8 @@ receiptForm.addEventListener("submit", async (event) => {
         const response = await fetch(url, {
             method,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            credentials: "include"
         });
 
         if (!response.ok) throw new Error(await getErrorMessage(response));
@@ -301,7 +319,8 @@ receiptForm.addEventListener("submit", async (event) => {
         showReceiptMessage(`Receipt ${method === "PUT" ? "updated" : "attached"} successfully.`);
         showMessage(`Receipt saved for purchase #${purchaseId}.`);
     } catch (error) {
-        showReceiptMessage(error.message || "Could not save the receipt.", true);
+        showReceiptMessage("Could not save the receipt. Please try again.", true);
+        console.error("Receipt save error:", error);
     }
 });
 
@@ -312,7 +331,10 @@ deleteReceiptButton.addEventListener("click", async () => {
     if (!window.confirm(`Delete receipt for purchase #${purchaseId}?`)) return;
 
     try {
-        const response = await fetch(`${purchasesApiUrl}/${purchaseId}/receipt`, { method: "DELETE" });
+        const response = await fetch(`${purchasesApiUrl}/${purchaseId}/receipt`, {
+            method: "DELETE",
+            credentials: "include"
+        });
         if (!response.ok) throw new Error(await getErrorMessage(response));
 
         currentReceiptExists = false;
@@ -322,7 +344,8 @@ deleteReceiptButton.addEventListener("click", async () => {
         showReceiptMessage("Receipt deleted successfully.");
         showMessage(`Receipt deleted for purchase #${purchaseId}.`);
     } catch (error) {
-        showReceiptMessage(error.message || "Could not delete the receipt.", true);
+        showReceiptMessage("Could not delete the receipt. Please try again.", true);
+        console.error("Receipt delete error:", error);
     }
 });
 

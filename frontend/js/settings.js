@@ -1,5 +1,3 @@
-const API_BASE = "http://localhost:8080/api";
-
 function showMessage(text, isError = false) {
     const messageEl = document.getElementById("message");
     if (!messageEl) return;
@@ -23,9 +21,9 @@ async function loadSettings() {
 
         document.getElementById("settings-name").textContent = user.name || "-";
         document.getElementById("settings-email").textContent = user.email || "-";
-        document.getElementById("settings-user-id").textContent = user.id != null ? `#${user.id}` : "-";
+        document.getElementById("settings-user-id").textContent = user.publicUserId || "-";
     } catch (error) {
-        showMessage("Unable to load account information. Ensure the backend is running.", true);
+        showMessage("Account information is temporarily unavailable.", true);
         console.error("Settings load error:", error);
     }
 }

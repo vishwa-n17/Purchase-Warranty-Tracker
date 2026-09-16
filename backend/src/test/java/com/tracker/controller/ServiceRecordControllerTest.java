@@ -4,10 +4,12 @@ import com.purchasewarrantytracker.model.Product;
 import com.purchasewarrantytracker.model.User;
 import com.purchasewarrantytracker.config.TestSecurityConfig;
 import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
+import com.purchasewarrantytracker.security.AuthenticatedUserProvider;
 import com.tracker.entity.ServiceRecord;
 import com.tracker.entity.ServiceType;
 import com.tracker.service.ServiceRecordService;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -41,6 +43,15 @@ class ServiceRecordControllerTest {
 
     @MockBean
     private ServiceRecordService serviceRecordService;
+
+    @MockBean
+    private AuthenticatedUserProvider authenticatedUserProvider;
+
+    @BeforeEach
+    void setUp() {
+        User currentUser = new User(1L, "Test User", "test@example.com", "encoded", null);
+        when(authenticatedUserProvider.getCurrentUser()).thenReturn(currentUser);
+    }
 
     @Test
     void getAllRecordsReturnsOk() throws Exception {

@@ -26,6 +26,9 @@ public class UserRepository {
             user.setName(rs.getString("name"));
             user.setEmail(rs.getString("email"));
             user.setPassword(rs.getString("password"));
+            String publicUserId = rs.getString("public_user_id");
+            if (rs.wasNull()) publicUserId = null;
+            user.setPublicUserId(publicUserId);
             user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
             return user;
         }
@@ -43,7 +46,7 @@ public class UserRepository {
 
     public Optional<User> findByEmail(String email) {
         List<User> users = jdbcTemplate.query(
-                "SELECT id, name, email, password, created_at FROM users WHERE email = ?",
+                "SELECT id, name, email, password, public_user_id, created_at FROM users WHERE email = ?",
                 USER_ROW_MAPPER,
                 email
         );
@@ -52,7 +55,7 @@ public class UserRepository {
 
     public Optional<User> findById(Long id) {
         List<User> users = jdbcTemplate.query(
-                "SELECT id, name, email, password, created_at FROM users WHERE id = ?",
+                "SELECT id, name, email, password, public_user_id, created_at FROM users WHERE id = ?",
                 USER_ROW_MAPPER,
                 id
         );
@@ -73,6 +76,7 @@ public class UserRepository {
         parameters.put("name", user.getName());
         parameters.put("email", user.getEmail());
         parameters.put("password", user.getPassword());
+        parameters.put("public_user_id", user.getPublicUserId());
         parameters.put("created_at", Timestamp.valueOf(user.getCreatedAt()));
 
         Number generatedId = jdbcInsert.executeAndReturnKey(parameters);
@@ -84,6 +88,14 @@ public class UserRepository {
         return jdbcTemplate.update(
                 "UPDATE users SET password = ? WHERE id = ?",
                 encodedPassword,
+                userId
+        );
+    }
+
+    public int updatePublicUserId(Long userId, String publicUserId) {
+        return jdbcTemplate.update(
+                "UPDATE users SET public_user_id = ? WHERE id = ?",
+                publicUserId,
                 userId
         );
     }

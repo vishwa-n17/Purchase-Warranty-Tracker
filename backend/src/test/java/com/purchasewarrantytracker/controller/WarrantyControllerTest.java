@@ -3,9 +3,12 @@ package com.purchasewarrantytracker.controller;
 import com.purchasewarrantytracker.config.TestSecurityConfig;
 import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
 import com.purchasewarrantytracker.exception.WarrantyNotFoundException;
+import com.purchasewarrantytracker.model.User;
 import com.purchasewarrantytracker.model.Warranty;
 import com.purchasewarrantytracker.model.WarrantyStatus;
+import com.purchasewarrantytracker.security.AuthenticatedUserProvider;
 import com.purchasewarrantytracker.service.WarrantyService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -40,6 +43,15 @@ class WarrantyControllerTest {
 
     @MockBean
     private WarrantyService warrantyService;
+
+    @MockBean
+    private AuthenticatedUserProvider authenticatedUserProvider;
+
+    @BeforeEach
+    void setUp() {
+        User currentUser = new User(1L, "Test User", "test@example.com", "encoded", null);
+        when(authenticatedUserProvider.getCurrentUser()).thenReturn(currentUser);
+    }
 
     @Test
     void createReturnsCreatedWarrantyAndLocationHeader() throws Exception {

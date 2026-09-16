@@ -14,7 +14,7 @@ async function checkBackendHealth() {
         const health = await response.json();
         healthStatus.textContent = `${health.status}: ${health.message}`;
     } catch (error) {
-        healthStatus.textContent = "Backend is unavailable. Start the Spring Boot application and try again.";
+        healthStatus.textContent = "Health check is temporarily unavailable. Please try again.";
         console.error("Unable to reach the health endpoint:", error);
     }
 }

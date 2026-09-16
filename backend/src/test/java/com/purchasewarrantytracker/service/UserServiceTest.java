@@ -38,12 +38,14 @@ class UserServiceTest {
         when(passwordEncoder.encode("password123")).thenReturn("encoded-password");
 
         User saved = new User(1L, "John Doe", "john@example.com", "encoded-password", LocalDateTime.now());
+        saved.setPublicUserId("USR-12345678");
         when(userRepository.save(any(User.class))).thenReturn(saved);
 
         User result = userService.signup(input);
 
         assertEquals(1L, result.getId());
         assertEquals("john@example.com", result.getEmail());
+        assertEquals("USR-12345678", result.getPublicUserId());
         verify(passwordEncoder).encode("password123");
         verify(userRepository).save(any(User.class));
     }
@@ -75,14 +77,33 @@ class UserServiceTest {
 
     @Test
     void loginSucceedsWithValidCredentials() {
-        when(userRepository.findByEmail("john@example.com"))
-                .thenReturn(Optional.of(new User(1L, "John Doe", "john@example.com", "encoded-password", LocalDateTime.now())));
+        User user = new User(1L, "John Doe", "john@example.com", "encoded-password", LocalDateTime.now());
+        user.setPublicUserId("USR-12345678");
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
 
         User result = userService.login("john@example.com", "password123");
 
         assertEquals(1L, result.getId());
         assertEquals("John Doe", result.getName());
+        assertEquals("USR-12345678", result.getPublicUserId());
+        verify(userRepository, never()).updatePublicUserId(any(), any());
+    }
+
+    @Test
+    void loginBackfillsMissingPublicUserId() {
+        User user = new User(1L, "John Doe", "john@example.com", "encoded-password", LocalDateTime.now());
+        user.setPublicUserId(null);
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
+        when(userRepository.updatePublicUserId(eq(1L), any(String.class))).thenReturn(1);
+
+        User result = userService.login("john@example.com", "password123");
+
+        assertEquals(1L, result.getId());
+        assertEquals("John Doe", result.getName());
+        assertEquals("USR-", result.getPublicUserId().substring(0, 4));
+        verify(userRepository).updatePublicUserId(eq(1L), any(String.class));
     }
 
     @Test

@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -45,6 +46,7 @@ public class UserService {
         newUser.setEmail(normalizedEmail);
         newUser.setPassword(encodedPassword);
         newUser.setCreatedAt(LocalDateTime.now());
+        newUser.setPublicUserId(generatePublicUserId());
 
         return userRepository.save(newUser);
     }
@@ -63,6 +65,12 @@ public class UserService {
 
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        if (user.getPublicUserId() == null || user.getPublicUserId().isBlank()) {
+            String generatedPublicId = generatePublicUserId();
+            userRepository.updatePublicUserId(user.getId(), generatedPublicId);
+            user.setPublicUserId(generatedPublicId);
         }
 
         return user;
@@ -96,5 +104,10 @@ public class UserService {
 
         String encodedNewPassword = passwordEncoder.encode(newPassword);
         userRepository.updatePassword(userId, encodedNewPassword);
+    }
+
+    private String generatePublicUserId() {
+        String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        return "USR-" + uuid;
     }
 }

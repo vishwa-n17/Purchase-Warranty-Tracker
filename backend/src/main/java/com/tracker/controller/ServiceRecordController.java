@@ -1,13 +1,11 @@
 package com.tracker.controller;
 
 import com.purchasewarrantytracker.model.User;
+import com.purchasewarrantytracker.security.AuthenticatedUserProvider;
 import com.tracker.entity.ServiceRecord;
 import com.tracker.service.ServiceRecordService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,28 +22,19 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/service-records")
-@CrossOrigin(origins = "*")
 public class ServiceRecordController {
 
     private final ServiceRecordService serviceRecordService;
+    private final AuthenticatedUserProvider authenticatedUserProvider;
 
-    public ServiceRecordController(ServiceRecordService serviceRecordService) {
+    public ServiceRecordController(ServiceRecordService serviceRecordService, AuthenticatedUserProvider authenticatedUserProvider) {
         this.serviceRecordService = serviceRecordService;
-    }
-
-    private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Unauthorized");
-        }
-        User user = (User) authentication.getPrincipal();
-        return user.getId();
+        this.authenticatedUserProvider = authenticatedUserProvider;
     }
 
     @GetMapping
     public List<ServiceRecord> getAllRecords(@RequestParam(required = false) Long productId) {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         if (productId != null) {
             return serviceRecordService.getRecordsByProduct(userId, productId);
         }
@@ -54,19 +43,19 @@ public class ServiceRecordController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ServiceRecord> getRecordById(@PathVariable Long id) {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         return ResponseEntity.ok(serviceRecordService.getRecordById(userId, id));
     }
 
     @GetMapping("/product/{productId}")
     public List<ServiceRecord> getRecordsByProductId(@PathVariable Long productId) {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         return serviceRecordService.getRecordsByProduct(userId, productId);
     }
 
     @PostMapping
     public ResponseEntity<ServiceRecord> createRecord(@Valid @RequestBody ServiceRecord record) {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         ServiceRecord createdRecord = serviceRecordService.createRecord(userId, record);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -78,13 +67,13 @@ public class ServiceRecordController {
     @PutMapping("/{id}")
     public ResponseEntity<ServiceRecord> updateRecord(@PathVariable Long id,
                                                       @Valid @RequestBody ServiceRecord updatedRecord) {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         return ResponseEntity.ok(serviceRecordService.updateRecord(userId, id, updatedRecord));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecord(@PathVariable Long id) {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         serviceRecordService.deleteRecord(userId, id);
         return ResponseEntity.noContent().build();
     }

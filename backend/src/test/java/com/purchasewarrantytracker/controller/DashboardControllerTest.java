@@ -3,17 +3,20 @@ package com.purchasewarrantytracker.controller;
 import com.purchasewarrantytracker.config.TestSecurityConfig;
 import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
 import com.purchasewarrantytracker.model.DashboardDTO;
+import com.purchasewarrantytracker.model.User;
+import com.purchasewarrantytracker.security.AuthenticatedUserProvider;
 import com.purchasewarrantytracker.service.DashboardService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -28,6 +31,15 @@ class DashboardControllerTest {
 
     @MockBean
     private DashboardService dashboardService;
+
+    @MockBean
+    private AuthenticatedUserProvider authenticatedUserProvider;
+
+    @BeforeEach
+    void setUp() {
+        User currentUser = new User(1L, "Test User", "test@example.com", "encoded", null);
+        when(authenticatedUserProvider.getCurrentUser()).thenReturn(currentUser);
+    }
 
     @Test
     void getSummaryReturnsOkAndDashboardDTO() throws Exception {

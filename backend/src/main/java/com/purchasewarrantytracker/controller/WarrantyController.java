@@ -1,13 +1,11 @@
 package com.purchasewarrantytracker.controller;
 
-import com.purchasewarrantytracker.model.User;
 import com.purchasewarrantytracker.model.Warranty;
+import com.purchasewarrantytracker.security.AuthenticatedUserProvider;
 import com.purchasewarrantytracker.service.WarrantyService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,24 +26,16 @@ import java.util.List;
 public class WarrantyController {
 
     private final WarrantyService warrantyService;
+    private final AuthenticatedUserProvider authenticatedUserProvider;
 
-    public WarrantyController(WarrantyService warrantyService) {
+    public WarrantyController(WarrantyService warrantyService, AuthenticatedUserProvider authenticatedUserProvider) {
         this.warrantyService = warrantyService;
-    }
-
-    private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Unauthorized");
-        }
-        User user = (User) authentication.getPrincipal();
-        return user.getId();
+        this.authenticatedUserProvider = authenticatedUserProvider;
     }
 
     @PostMapping
     public ResponseEntity<Warranty> create(@Valid @RequestBody Warranty warranty) {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         Warranty createdWarranty = warrantyService.create(userId, warranty);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -56,32 +46,32 @@ public class WarrantyController {
 
     @GetMapping
     public List<Warranty> getAll() {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         return warrantyService.getAll(userId);
     }
 
     @GetMapping("/{id}")
     public Warranty getById(@PathVariable @Positive(message = "Warranty ID must be a positive number") long id) {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         return warrantyService.getById(userId, id);
     }
 
     @GetMapping("/products/{productId}/warranty")
     public Warranty getByProductId(@PathVariable @Positive(message = "Product ID must be a positive number") long productId) {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         return warrantyService.getByProductId(userId, productId);
     }
 
     @PutMapping("/{id}")
     public Warranty update(@PathVariable @Positive(message = "Warranty ID must be a positive number") long id,
                            @Valid @RequestBody Warranty warranty) {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         return warrantyService.update(userId, id, warranty);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @Positive(message = "Warranty ID must be a positive number") long id) {
-        Long userId = getCurrentUserId();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
         warrantyService.delete(userId, id);
         return ResponseEntity.noContent().build();
     }

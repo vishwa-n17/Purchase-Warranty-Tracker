@@ -1,4 +1,3 @@
-const API_BASE = "http://localhost:8080/api";
 const serviceRecordsApiUrl = `${API_BASE}/service-records`;
 const productsApiUrl = `${API_BASE}/products`;
 
@@ -41,12 +40,14 @@ function formatCurrency(amount) {
 
 async function getErrorMessage(response) {
     const error = await response.json().catch(() => null);
-    return error?.message || "The request could not be completed.";
+    return error?.message || "Something went wrong. Please try again.";
 }
 
 async function loadProducts() {
     try {
-        const response = await fetch(productsApiUrl);
+        const response = await fetch(productsApiUrl, {
+            credentials: "include"
+        });
         if (!response.ok) throw new Error(await getErrorMessage(response));
         productsCache = await response.json();
         productsMap.clear();
@@ -61,7 +62,8 @@ async function loadProducts() {
             productSelect.appendChild(option);
         });
     } catch (error) {
-        showMessage(error.message || "Could not load products for selection.", true);
+        showMessage("Could not load products for selection.", true);
+        console.error("Service records products load error:", error);
     }
 }
 
@@ -102,13 +104,16 @@ function showTableEmpty() {
 async function loadServiceRecords() {
     try {
         showTableLoading();
-        const response = await fetch(serviceRecordsApiUrl);
+        const response = await fetch(serviceRecordsApiUrl, {
+            credentials: "include"
+        });
         if (!response.ok) throw new Error(await getErrorMessage(response));
         const records = await response.json();
         renderServiceRecords(records);
     } catch (error) {
-        showMessage(error.message || "Could not load service records.", true);
+        showMessage("Could not load service records.", true);
         showTableEmpty();
+        console.error("Service records load error:", error);
     }
 }
 
@@ -122,13 +127,14 @@ function renderServiceRecords(records) {
     records.forEach(record => {
         const row = document.createElement("tr");
         row.innerHTML = `
+            <td style="width:48px"></td>
             <td></td>
             <td></td>
             <td class="text-date"></td>
             <td></td>
             <td class="text-currency"></td>
             <td></td>
-            <td>
+            <td style="width:140px">
                 <button type="button" class="btn btn-sm btn-primary edit">Edit</button>
                 <button type="button" class="btn btn-sm btn-danger delete">Delete</button>
             </td>
@@ -138,14 +144,16 @@ function renderServiceRecords(records) {
         const productName = record.product?.name ? record.product.name : getProductDisplayName(productId);
 
         const cells = row.querySelectorAll("td");
-        cells[0].textContent = productName;
-        cells[1].innerHTML = getServiceTypeBadge(record.serviceType);
-        cells[2].textContent = record.serviceDate;
-        cells[2].className = "text-date";
-        cells[3].textContent = record.provider;
-        cells[4].textContent = formatCurrency(record.cost);
-        cells[4].className = "text-currency";
-        cells[5].textContent = record.description;
+        cells[0].innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
+        cells[0].style.cssText = "width:48px;text-align:center;color:var(--color-text-tertiary)";
+        cells[1].textContent = productName;
+        cells[2].innerHTML = getServiceTypeBadge(record.serviceType);
+        cells[3].textContent = record.serviceDate;
+        cells[3].className = "text-date";
+        cells[4].textContent = record.provider;
+        cells[5].textContent = formatCurrency(record.cost);
+        cells[5].className = "text-currency";
+        cells[6].textContent = record.description;
 
         row.querySelector(".edit").addEventListener("click", () => fillFormForEdit(record));
         row.querySelector(".delete").addEventListener("click", () => deleteServiceRecord(record.id, productName));
@@ -200,7 +208,8 @@ serviceForm.addEventListener("submit", async (event) => {
         const response = await fetch(url, {
             method,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            credentials: "include"
         });
 
         if (!response.ok) throw new Error(await getErrorMessage(response));
@@ -209,7 +218,8 @@ serviceForm.addEventListener("submit", async (event) => {
         showMessage(`Service record ${id ? "updated" : "saved"} successfully.`);
         loadServiceRecords();
     } catch (error) {
-        showMessage(error.message || "Could not save the service record.", true);
+        showMessage("Could not save the service record. Please try again.", true);
+        console.error("Service record save error:", error);
     }
 });
 
@@ -217,7 +227,10 @@ async function deleteServiceRecord(id, productName) {
     if (!window.confirm(`Delete service record #${id} for "${productName}"?`)) return;
 
     try {
-        const response = await fetch(`${serviceRecordsApiUrl}/${id}`, { method: "DELETE" });
+        const response = await fetch(`${serviceRecordsApiUrl}/${id}`, {
+            method: "DELETE",
+            credentials: "include"
+        });
         if (!response.ok) throw new Error(await getErrorMessage(response));
 
         showMessage(`Service record #${id} deleted successfully.`);
@@ -226,7 +239,8 @@ async function deleteServiceRecord(id, productName) {
         }
         loadServiceRecords();
     } catch (error) {
-        showMessage(error.message || "Could not delete the service record.", true);
+        showMessage("Could not delete the service record. Please try again.", true);
+        console.error("Service record delete error:", error);
     }
 }
 

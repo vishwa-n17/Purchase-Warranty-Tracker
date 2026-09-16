@@ -5,7 +5,10 @@ import com.purchasewarrantytracker.exception.GlobalExceptionHandler;
 import com.purchasewarrantytracker.exception.PurchaseNotFoundException;
 import com.purchasewarrantytracker.exception.ReceiptNotFoundException;
 import com.purchasewarrantytracker.model.Receipt;
+import com.purchasewarrantytracker.model.User;
+import com.purchasewarrantytracker.security.AuthenticatedUserProvider;
 import com.purchasewarrantytracker.service.ReceiptService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -39,6 +42,15 @@ class ReceiptControllerTest {
 
     @MockBean
     private ReceiptService receiptService;
+
+    @MockBean
+    private AuthenticatedUserProvider authenticatedUserProvider;
+
+    @BeforeEach
+    void setUp() {
+        User currentUser = new User(1L, "Test User", "test@example.com", "encoded", null);
+        when(authenticatedUserProvider.getCurrentUser()).thenReturn(currentUser);
+    }
 
     @Test
     void createReceiptReturnsCreated() throws Exception {

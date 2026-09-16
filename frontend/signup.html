@@ -3,110 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up | Purchase & Warranty Tracker</title>
+    <title>Sign Up | Purchase &amp; Warranty Tracker</title>
     <link rel="stylesheet" href="css/styles.css">
-    <style>
-        .auth-page {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: var(--spacing-lg);
-            background: var(--color-gray-100);
-        }
-
-        .auth-card {
-            background: var(--color-white);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--color-gray-200);
-            padding: var(--spacing-xl);
-            width: 100%;
-            max-width: 420px;
-        }
-
-        .auth-header {
-            text-align: center;
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .auth-header .brand-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--color-primary);
-            border-radius: var(--radius-md);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--color-white);
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .auth-header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--color-gray-900);
-            margin-bottom: var(--spacing-xs);
-        }
-
-        .auth-header p {
-            font-size: 0.875rem;
-            color: var(--color-gray-500);
-        }
-
-        .auth-footer {
-            text-align: center;
-            margin-top: var(--spacing-lg);
-            font-size: 0.875rem;
-            color: var(--color-gray-500);
-        }
-
-        .auth-footer a {
-            color: var(--color-primary);
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .auth-footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
 </head>
-<body>
-    <div class="auth-page">
-        <div class="auth-card">
-            <div class="auth-header">
-                <div class="brand-icon">P</div>
-                <h1>Create account</h1>
-                <p>Get started with Purchase & Warranty Tracker</p>
+<body class="auth-page">
+    <div class="auth-split">
+        <div class="auth-brand">
+            <div class="auth-brand-content">
+                <div class="auth-brand-logo">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="40" height="40" rx="10" fill="url(#brand-grad2)"/>
+                        <path d="M12 20L18 26L28 14" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="brand-grad2" x1="0" y1="0" x2="40" y2="40">
+                                <stop stop-color="#4f46e5"/>
+                                <stop offset="1" stop-color="#7c3aed"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h2 class="auth-brand-title">Purchase & Warranty Tracker</h2>
+                <p class="auth-brand-text">Start tracking your purchases, warranties, and service records today.</p>
+                <div class="auth-brand-features">
+                    <div class="auth-brand-feature">
+                        <span class="auth-brand-feature-icon">📦</span>
+                        <span>Product inventory</span>
+                    </div>
+                    <div class="auth-brand-feature">
+                        <span class="auth-brand-feature-icon">🛡️</span>
+                        <span>Warranty tracking</span>
+                    </div>
+                    <div class="auth-brand-feature">
+                        <span class="auth-brand-feature-icon">🔧</span>
+                        <span>Service history</span>
+                    </div>
+                </div>
             </div>
-
-            <p id="message" class="message" aria-live="polite"></p>
-
-            <form id="signup-form">
-                <div class="form-group">
-                    <label class="form-label" for="name">Full name</label>
-                    <input id="name" type="text" class="form-input" required placeholder="John Doe">
+        </div>
+        <div class="auth-form-panel">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="auth-logo">P</div>
+                    <h1 class="auth-title">Create account</h1>
+                    <p class="auth-subtitle">Get started with Purchase & Warranty Tracker</p>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="email">Email</label>
-                    <input id="email" type="email" class="form-input" required placeholder="you@example.com">
+                <p id="message" class="message" aria-live="polite"></p>
+                <form id="signup-form" class="auth-form" autocomplete="on">
+                    <div class="form-group">
+                        <label class="form-label" for="name">Full name</label>
+                        <input id="name" type="text" class="form-input" placeholder="John Doe" required autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email</label>
+                        <input id="email" type="email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <input id="password" type="password" class="form-input" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="confirm-password">Confirm password</label>
+                        <input id="confirm-password" type="password" class="form-input" placeholder="Repeat your password" required minlength="6" autocomplete="new-password">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Create account</button>
+                    </div>
+                </form>
+                <div class="auth-footer">
+                    Already have an account? <a href="login.html">Sign in</a>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="password">Password</label>
-                    <input id="password" type="password" class="form-input" required placeholder="At least 6 characters">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="confirm-password">Confirm password</label>
-                    <input id="confirm-password" type="password" class="form-input" required placeholder="Repeat your password">
-                </div>
-                <button type="submit" class="btn btn-primary btn-block" style="margin-top: var(--spacing-md);">Create account</button>
-            </form>
-
-            <div class="auth-footer">
-                Already have an account? <a href="login.html">Sign in</a>
             </div>
         </div>
     </div>
