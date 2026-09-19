@@ -26,8 +26,6 @@ public class User implements Serializable {
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
-    private String publicUserId;
-
     private LocalDateTime createdAt;
 
     public User() {
@@ -79,13 +77,5 @@ public class User implements Serializable {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public String getPublicUserId() {
-        return publicUserId;
-    }
-
-    public void setPublicUserId(String publicUserId) {
-        this.publicUserId = publicUserId;
     }
 }

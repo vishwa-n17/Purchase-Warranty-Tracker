@@ -70,13 +70,11 @@ public class AuthController {
         public Long id;
         public String name;
         public String email;
-        public String publicUserId;
 
-        public UserResponse(Long id, String name, String email, String publicUserId) {
+        public UserResponse(Long id, String name, String email) {
             this.id = id;
             this.name = name;
             this.email = email;
-            this.publicUserId = publicUserId;
         }
     }
 
@@ -91,7 +89,7 @@ public class AuthController {
 
         authenticateUser(createdUser, httpRequest, httpResponse);
 
-        UserResponse response = new UserResponse(createdUser.getId(), createdUser.getName(), createdUser.getEmail(), createdUser.getPublicUserId());
+        UserResponse response = new UserResponse(createdUser.getId(), createdUser.getName(), createdUser.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -101,7 +99,7 @@ public class AuthController {
 
         authenticateUser(user, httpRequest, httpResponse);
 
-        UserResponse response = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getPublicUserId());
+        UserResponse response = new UserResponse(user.getId(), user.getName(), user.getEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -126,7 +124,7 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me() {
         User user = authenticatedUserProvider.getCurrentUser();
-        UserResponse response = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getPublicUserId());
+        UserResponse response = new UserResponse(user.getId(), user.getName(), user.getEmail());
         return ResponseEntity.ok(response);
     }
 

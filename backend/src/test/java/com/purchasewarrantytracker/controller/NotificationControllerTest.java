@@ -49,6 +49,7 @@ class NotificationControllerTest {
 
         mockMvc.perform(get("/api/notifications"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Warranty Expiring"));
+                .andExpect(jsonPath("$[0].title").value("Warranty Expiring"))
+                .andExpect(jsonPath("$[0].message").value("Laptop warranty expires soon"));
     }
 }

@@ -61,7 +61,6 @@ class AuthControllerTest {
     @Test
     void signupReturnsCreatedUser() throws Exception {
         User user = new User(1L, "John Doe", "john@example.com", "encoded", LocalDateTime.now());
-        user.setPublicUserId("USR-12345678");
         when(userService.signup(any(User.class))).thenReturn(user);
 
         mockMvc.perform(post("/api/auth/signup")
@@ -70,8 +69,7 @@ class AuthControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("John Doe"))
-                .andExpect(jsonPath("$.email").value("john@example.com"))
-                .andExpect(jsonPath("$.publicUserId").value("USR-12345678"));
+                .andExpect(jsonPath("$.email").value("john@example.com"));
     }
 
     @Test
@@ -96,7 +94,6 @@ class AuthControllerTest {
     @Test
     void loginReturnsUserOnValidCredentials() throws Exception {
         User user = new User(1L, "John Doe", "john@example.com", "encoded", LocalDateTime.now());
-        user.setPublicUserId("USR-12345678");
         when(userService.login("john@example.com", "password123")).thenReturn(user);
 
         mockMvc.perform(post("/api/auth/login")
@@ -105,8 +102,7 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("John Doe"))
-                .andExpect(jsonPath("$.email").value("john@example.com"))
-                .andExpect(jsonPath("$.publicUserId").value("USR-12345678"));
+                .andExpect(jsonPath("$.email").value("john@example.com"));
     }
 
     @Test
@@ -131,6 +127,18 @@ class AuthControllerTest {
     }
 
     @Test
+    void meReturnsUserWhenAuthenticated() throws Exception {
+        User user = new User(1L, "John Doe", "john@example.com", "encoded", LocalDateTime.now());
+        when(authenticatedUserProvider.getCurrentUser()).thenReturn(user);
+
+        mockMvc.perform(get("/api/auth/me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("John Doe"))
+                .andExpect(jsonPath("$.email").value("john@example.com"));
+    }
+
+    @Test
     void protectedProductEndpointRequiresAuthentication() throws Exception {
         doThrow(new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Unauthorized"))
                 .when(authenticatedUserProvider).getCurrentUser();
@@ -150,7 +158,6 @@ class AuthControllerTest {
     @Test
     void changePasswordReturnsOkWhenValid() throws Exception {
         User user = new User(1L, "John Doe", "john@example.com", "encoded", LocalDateTime.now());
-        user.setPublicUserId("USR-12345678");
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         doNothing().when(userService).changePassword(eq(1L), eq("current123"), eq("newpassword123"));
         when(authenticatedUserProvider.getCurrentUser()).thenReturn(user);
@@ -165,7 +172,6 @@ class AuthControllerTest {
     @Test
     void changePasswordRejectsIncorrectCurrentPassword() throws Exception {
         User user = new User(1L, "John Doe", "john@example.com", "encoded", LocalDateTime.now());
-        user.setPublicUserId("USR-12345678");
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         doThrow(new IllegalArgumentException("Current password is incorrect"))
                 .when(userService).changePassword(eq(1L), eq("wrong"), any(String.class));
@@ -181,7 +187,6 @@ class AuthControllerTest {
     @Test
     void changePasswordRejectsShortNewPassword() throws Exception {
         User user = new User(1L, "John Doe", "john@example.com", "encoded", LocalDateTime.now());
-        user.setPublicUserId("USR-12345678");
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         doThrow(new IllegalArgumentException("New password must be at least 6 characters"))
                 .when(userService).changePassword(eq(1L), any(String.class), eq("123"));

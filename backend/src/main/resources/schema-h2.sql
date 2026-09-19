@@ -1,3 +1,6 @@
+-- TODO: Move to versioned Flyway migrations before production.
+-- Raw schema-h2.sql is used deliberately for now to keep the default H2 profile simple.
+
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -24,9 +27,9 @@ CREATE TABLE IF NOT EXISTS purchases (
     product_id BIGINT NOT NULL,
     purchase_date DATE NOT NULL,
     purchase_price DECIMAL(10, 2) NOT NULL,
-    store_name VARCHAR(150) NOT NULL,
     payment_method VARCHAR(20) NOT NULL,
     CONSTRAINT chk_purchases_price_non_negative CHECK (purchase_price >= 0),
+    CONSTRAINT chk_purchases_payment_method CHECK (payment_method IN ('CASH', 'CARD', 'UPI', 'BANK_TRANSFER', 'OTHER')),
     CONSTRAINT fk_purchases_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_purchases_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -41,6 +44,7 @@ CREATE TABLE IF NOT EXISTS warranties (
     warranty_provider VARCHAR(150) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     CONSTRAINT chk_warranties_duration CHECK (duration_months > 0),
+    CONSTRAINT chk_warranties_status CHECK (status IN ('ACTIVE', 'EXPIRED', 'VOID')),
     CONSTRAINT chk_warranties_dates CHECK (expiry_date >= start_date),
     CONSTRAINT fk_warranties_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_warranties_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE ON UPDATE CASCADE

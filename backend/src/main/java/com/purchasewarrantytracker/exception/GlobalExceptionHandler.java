@@ -29,18 +29,36 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({IllegalArgumentException.class, MethodArgumentTypeMismatchException.class,
             MethodArgumentNotValidException.class, HandlerMethodValidationException.class})
     public ResponseEntity<ApiError> handleBadRequest(Exception exception) {
-        String message = exception.getMessage() != null && !exception.getMessage().isBlank()
-                ? exception.getMessage()
-                : "Invalid request data or ID";
-        return error(HttpStatus.BAD_REQUEST, message);
+        String safeMessage = "Invalid request data or ID";
+        if (exception instanceof MethodArgumentNotValidException validationEx) {
+            safeMessage = validationEx.getBindingResult().getFieldErrors().stream()
+                    .findFirst()
+                    .map(fieldError -> fieldError.getDefaultMessage())
+                    .filter(message -> message != null && !message.isBlank())
+                    .orElse("Invalid request data");
+        } else if (exception instanceof HandlerMethodValidationException handlerEx) {
+            safeMessage = handlerEx.getMessage();
+            if (safeMessage == null || safeMessage.isBlank()) safeMessage = "Invalid request data";
+        }
+        return error(HttpStatus.BAD_REQUEST, safeMessage);
     }
 
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ApiError> handleDatabaseError(DataAccessException ex) {
-        String detail = ex.getMessage();
-        if (detail == null || detail.isBlank()) detail = "A database error occurred";
-        ApiError error = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", detail, Instant.now());
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        String safeMessage = "Something went wrong. Please try again.";
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, safeMessage);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleUnexpected(Exception ex) {
+        if (ex instanceof org.springframework.web.server.ResponseStatusException statusEx) {
+            org.springframework.http.HttpStatus status = org.springframework.http.HttpStatus.valueOf(statusEx.getStatusCode().value());
+            String message = statusEx.getReason();
+            if (message == null || message.isBlank()) message = status.getReasonPhrase();
+            return error(status, message);
+        }
+        String safeMessage = "Something went wrong. Please try again.";
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, safeMessage);
     }
 
     private ResponseEntity<ApiError> error(HttpStatus status, String message) {

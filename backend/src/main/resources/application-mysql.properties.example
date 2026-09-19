@@ -1,6 +1,8 @@
-spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/purchase_warranty_tracker}
+# Copy this file to application-mysql.properties (gitignored) and fill in your local MySQL credentials.
+# Never commit real passwords to version control.
+spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/purchase_warranty_tracker?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
 spring.datasource.username=${DB_USERNAME:root}
-spring.datasource.password=${DB_PASSWORD:Vishwa@1710}
+spring.datasource.password=${DB_PASSWORD:CHANGE_ME}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
 spring.datasource.hikari.connection-timeout=5000

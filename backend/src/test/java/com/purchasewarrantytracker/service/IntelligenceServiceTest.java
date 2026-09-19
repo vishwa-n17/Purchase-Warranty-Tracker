@@ -190,4 +190,92 @@ class IntelligenceServiceTest {
         assertThrows(IllegalArgumentException.class, () -> intelligenceService.compareProducts(TEST_USER_ID, List.of(1L)));
         assertThrows(IllegalArgumentException.class, () -> intelligenceService.compareProducts(TEST_USER_ID, List.of()));
     }
+
+    @Test
+    void getNotificationsReturnsWarrantyExpiringSoon() {
+        Product product = new Product(1L, TEST_USER_ID, "Laptop", "Electronics", "Lenovo", "IdeaPad", "SN-1", "Notes");
+        when(productRepository.findByIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.of(product));
+
+        com.purchasewarrantytracker.model.Warranty warranty = new com.purchasewarrantytracker.model.Warranty(
+                1L, TEST_USER_ID, 1L, LocalDate.now(), 12, LocalDate.now().plusDays(10), "Lenovo", WarrantyStatus.ACTIVE
+        );
+        when(warrantyService.getAll(TEST_USER_ID)).thenReturn(List.of(warranty));
+
+        List<NotificationDTO> notifications = intelligenceService.getNotifications(TEST_USER_ID);
+
+        assertTrue(notifications.stream().anyMatch(n -> "Warranty Expiring Soon".equals(n.title())));
+    }
+
+    @Test
+    void getNotificationsReturnsWarrantyExpired() {
+        Product product = new Product(1L, TEST_USER_ID, "Laptop", "Electronics", "Lenovo", "IdeaPad", "SN-1", "Notes");
+        when(productRepository.findByIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.of(product));
+
+        com.purchasewarrantytracker.model.Warranty warranty = new com.purchasewarrantytracker.model.Warranty(
+                1L, TEST_USER_ID, 1L, LocalDate.now().minusMonths(1), 12, LocalDate.now().minusDays(5), "Lenovo", WarrantyStatus.EXPIRED
+        );
+        when(warrantyService.getAll(TEST_USER_ID)).thenReturn(List.of(warranty));
+
+        List<NotificationDTO> notifications = intelligenceService.getNotifications(TEST_USER_ID);
+
+        assertTrue(notifications.stream().anyMatch(n -> "Warranty Expired".equals(n.title())));
+    }
+
+    @Test
+    void getNotificationsReturnsClaimPreparationNeededWhenMissingItems() {
+        Product product = new Product(1L, TEST_USER_ID, "Laptop", "Electronics", "Lenovo", "IdeaPad", "SN-1", "Notes");
+        when(productRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(product));
+        when(productRepository.findByIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.of(product));
+        when(purchaseRepository.findByProductIdAndUserId(1L, TEST_USER_ID)).thenReturn(List.of());
+        when(warrantyRepository.findByProductIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.empty());
+
+        List<NotificationDTO> notifications = intelligenceService.getNotifications(TEST_USER_ID);
+
+        assertTrue(notifications.stream().anyMatch(n -> "Claim Preparation Needed".equals(n.title())));
+    }
+
+    @Test
+    void getNotificationsReturnsReceiptMissing() {
+        Product product = new Product(1L, TEST_USER_ID, "Laptop", "Electronics", "Lenovo", "IdeaPad", "SN-1", "Notes");
+        when(productRepository.findByIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.of(product));
+
+        Purchase purchase = new Purchase(1L, TEST_USER_ID, 1L, LocalDate.now(), new BigDecimal("1000"), "Store", PaymentMethod.CARD);
+        when(purchaseRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(purchase));
+        when(receiptRepository.findByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.empty());
+
+        List<NotificationDTO> notifications = intelligenceService.getNotifications(TEST_USER_ID);
+
+        assertTrue(notifications.stream().anyMatch(n -> "Receipt Missing".equals(n.title())));
+    }
+
+    @Test
+    void getNotificationsReturnsServiceDueWhenNoServiceRecords() {
+        Product product = new Product(1L, TEST_USER_ID, "Laptop", "Electronics", "Lenovo", "IdeaPad", "SN-1", "Notes");
+        when(productRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(product));
+        when(productRepository.findByIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.of(product));
+        when(serviceRecordRepository.findByProductIdAndUserId(1L, TEST_USER_ID)).thenReturn(List.of());
+
+        List<NotificationDTO> notifications = intelligenceService.getNotifications(TEST_USER_ID);
+
+        assertTrue(notifications.stream().anyMatch(n -> "Service Due".equals(n.title())));
+    }
+
+    @Test
+    void getNotificationsIsUserIsolated() {
+        Product product = new Product(1L, TEST_USER_ID, "Laptop", "Electronics", "Lenovo", "IdeaPad", "SN-1", "Notes");
+        when(productRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(product));
+        when(productRepository.findByIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.of(product));
+        when(serviceRecordRepository.findByProductIdAndUserId(1L, TEST_USER_ID)).thenReturn(List.of());
+
+        Product otherUserProduct = new Product(2L, 99L, "Phone", "Electronics", "Samsung", "Galaxy", "SN-2", "Notes");
+        when(productRepository.findByUserId(99L)).thenReturn(List.of(otherUserProduct));
+        when(productRepository.findByIdAndUserId(2L, 99L)).thenReturn(Optional.of(otherUserProduct));
+        when(serviceRecordRepository.findByProductIdAndUserId(2L, 99L)).thenReturn(List.of());
+
+        List<NotificationDTO> notificationsForUser1 = intelligenceService.getNotifications(TEST_USER_ID);
+        List<NotificationDTO> notificationsForOtherUser = intelligenceService.getNotifications(99L);
+
+        assertTrue(notificationsForUser1.stream().allMatch(n -> !n.id().contains("product-2") && !n.message().contains("Phone")));
+        assertTrue(notificationsForOtherUser.stream().allMatch(n -> !n.id().contains("product-1") && !n.message().contains("Laptop")));
+    }
 }

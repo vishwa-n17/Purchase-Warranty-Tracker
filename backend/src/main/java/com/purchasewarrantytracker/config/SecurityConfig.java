@@ -83,6 +83,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/", "/index.html", "/login.html", "/signup.html", "/*.html", "/js/**", "/css/**", "/favicon.ico").permitAll()
                         .requestMatchers("/api/auth/**", "/api/health").permitAll()
                         .anyRequest().authenticated()
                 )

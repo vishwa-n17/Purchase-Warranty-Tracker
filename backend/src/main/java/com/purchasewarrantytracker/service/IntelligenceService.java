@@ -643,6 +643,20 @@ public class IntelligenceService {
             }
         }
 
+        for (Product p : products) {
+            List<ServiceRecord> serviceRecords = serviceRecordRepository.findByProductIdAndUserId(p.getId(), userId);
+            if (serviceRecords == null || serviceRecords.isEmpty()) {
+                notifications.add(new NotificationDTO(
+                        "service-due-" + p.getId(),
+                        "SERVICE",
+                        "Service Due",
+                        "No service record found for " + p.getName(),
+                        "medium",
+                        false
+                ));
+            }
+        }
+
         return notifications;
     }
 
