@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Purchase &amp; Warranty Tracker</title>
+    <title>Dashboard | VaultTrack</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -11,8 +11,16 @@
         <header class="app-header">
             <div class="header-inner">
                 <a href="dashboard.html" class="brand">
-                    <div class="brand-icon">P</div>
-                    <span>Purchase &amp; Warranty Tracker</span>
+                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="VaultTrack logo">
+                        <path d="M3 7L12 19L21 7" stroke="url(#v-grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="v-grad" x1="0" y1="0" x2="24" y2="0">
+                                <stop stop-color="#4f46e5"/>
+                                <stop offset="1" stop-color="#7c3aed"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                     <span>VaultTrack</span>
                 </a>
                 <button type="button" class="nav-toggle" aria-label="Toggle navigation">☰</button>
                 <nav class="main-nav">
@@ -58,7 +66,7 @@
             </div>
         </header>
         <main class="main-content app-body">
-            <div class="dashboard-hero">
+            <div class="dashboard-hero dashboard-hero--gradient">
                 <div class="dashboard-hero-content">
                     <div>
                         <h1 class="dashboard-hero-title">Welcome back, <span id="welcome-name">User</span></h1>
@@ -137,7 +145,13 @@
                     <a href="warranties.html" class="btn btn-secondary btn-sm">View all warranties</a>
                 </div>
                 <div class="card-body">
-                    <div id="warranty-action-content"></div>
+                    <div id="warranty-action-content">
+                        <div class="loading-skeleton">
+                            <div class="loading-skeleton-line" style="width:60%"></div>
+                            <div class="loading-skeleton-line" style="width:100%"></div>
+                            <div class="loading-skeleton-line" style="width:90%"></div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -154,7 +168,13 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div id="health-content"></div>
+                    <div id="health-content">
+                        <div class="loading-skeleton">
+                            <div class="loading-skeleton-line" style="width:50%"></div>
+                            <div class="loading-skeleton-line" style="width:100%"></div>
+                            <div class="loading-skeleton-line" style="width:80%"></div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -171,7 +191,13 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div id="activity-content"></div>
+                    <div id="activity-content">
+                        <div class="loading-skeleton">
+                            <div class="loading-skeleton-line" style="width:70%"></div>
+                            <div class="loading-skeleton-line" style="width:100%"></div>
+                            <div class="loading-skeleton-line" style="width:85%"></div>
+                        </div>
+                    </div>
                 </div>
             </section>
 

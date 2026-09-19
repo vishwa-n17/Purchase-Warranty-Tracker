@@ -23,8 +23,12 @@ function getProductFromForm() {
 }
 
 async function getErrorMessage(response) {
-    const error = await response.json().catch(() => null);
-    return error?.message || "Something went wrong. Please try again.";
+    const status = response.status;
+    if (status === 401) return "Please sign in again.";
+    if (status === 403) return "You don't have permission to perform this action.";
+    if (status === 404) return "The requested information could not be found.";
+    if (status === 409) return "This information already exists.";
+    return "Something went wrong. Please try again.";
 }
 
 function showTableLoading() {
@@ -91,8 +95,8 @@ function renderProducts(products) {
         const cells = row.querySelectorAll("td");
         cells[0].innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`;
         cells[0].style.cssText = "width:48px;text-align:center;color:var(--color-text-tertiary)";
-        cells[1].textContent = product.name;
-        cells[2].textContent = product.category;
+        cells[1].innerHTML = `<strong>${product.name}</strong>`;
+        cells[2].innerHTML = product.category ? `<span class="badge badge-secondary">${product.category}</span>` : "-";
         cells[3].textContent = [product.brand, product.model].filter(Boolean).join(" / ") || "-";
         cells[4].textContent = product.serialNumber || "-";
 
@@ -213,85 +217,136 @@ async function loadProductIntelligence(productId) {
 function renderProductIntelligence(lifecycle, warrantyIntel, ownershipCost, health, timeline) {
     let html = "";
 
-    html += `<div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-card-label">Purchases</div>
-            <div class="stat-card-value">${Number(lifecycle.purchaseCount || 0).toLocaleString("en-IN")}</div>
+    html += `<div class="intelligence-grid">
+        <div class="intelligence-card">
+            <div class="intelligence-card-header">
+                <div class="intelligence-card-icon" style="background:var(--color-primary-light);color:var(--color-primary);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                </div>
+                <div class="intelligence-card-title">Lifecycle</div>
+            </div>
+            <div class="intelligence-card-body">
+                <div class="intelligence-metric">
+                    <span class="intelligence-metric-value">${Number(lifecycle.purchaseCount || 0).toLocaleString("en-IN")}</span>
+                    <span class="intelligence-metric-label">Purchases</span>
+                </div>
+                <div class="intelligence-metric">
+                    <span class="intelligence-metric-value">${Number(lifecycle.activeWarrantyCount || 0).toLocaleString("en-IN")}</span>
+                    <span class="intelligence-metric-label">Active Warranties</span>
+                </div>
+                <div class="intelligence-metric">
+                    <span class="intelligence-metric-value">${Number(lifecycle.serviceRecordCount || 0).toLocaleString("en-IN")}</span>
+                    <span class="intelligence-metric-label">Service Records</span>
+                </div>
+            </div>
         </div>
-        <div class="stat-card card-purple">
-            <div class="stat-card-label">Total Spend</div>
-            <div class="stat-card-value">${formatCurrency(lifecycle.totalSpend || 0)}</div>
+
+        <div class="intelligence-card">
+            <div class="intelligence-card-header">
+                <div class="intelligence-card-icon" style="background:var(--color-success-light);color:var(--color-success);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div class="intelligence-card-title">Ownership Cost</div>
+            </div>
+            <div class="intelligence-card-body">
+                <div class="intelligence-metric">
+                    <span class="intelligence-metric-value">${formatCurrency(ownershipCost?.purchaseCost || 0)}</span>
+                    <span class="intelligence-metric-label">Purchase Cost</span>
+                </div>
+                <div class="intelligence-metric">
+                    <span class="intelligence-metric-value">${formatCurrency(ownershipCost?.serviceCost || 0)}</span>
+                    <span class="intelligence-metric-label">Service Cost</span>
+                </div>
+                <div class="intelligence-metric">
+                    <span class="intelligence-metric-value" style="color:var(--color-primary);">${formatCurrency(ownershipCost?.totalOwnershipCost || 0)}</span>
+                    <span class="intelligence-metric-label">Total Ownership Cost</span>
+                </div>
+            </div>
         </div>
-        <div class="stat-card card-green">
-            <div class="stat-card-label">Active Warranties</div>
-            <div class="stat-card-value">${Number(lifecycle.activeWarrantyCount || 0).toLocaleString("en-IN")}</div>
-        </div>
-        <div class="stat-card card-info">
-            <div class="stat-card-label">Service Records</div>
-            <div class="stat-card-value">${Number(lifecycle.serviceRecordCount || 0).toLocaleString("en-IN")}</div>
+
+        <div class="intelligence-card">
+            <div class="intelligence-card-header">
+                <div class="intelligence-card-icon" style="background:var(--color-purple-light);color:var(--color-purple);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="intelligence-card-title">Warranty Intelligence</div>
+            </div>
+            <div class="intelligence-card-body">
+                <div class="intelligence-metric">
+                    <span class="intelligence-metric-value">${warrantyIntel?.activeWarrantyCount || 0}</span>
+                    <span class="intelligence-metric-label">Active Warranties</span>
+                </div>
+                <div class="intelligence-metric">
+                    <span class="intelligence-metric-value">${warrantyIntel?.daysRemaining != null ? warrantyIntel.daysRemaining : "-"}</span>
+                    <span class="intelligence-metric-label">Days Remaining</span>
+                </div>
+                <div class="intelligence-metric">
+                    <span class="intelligence-metric-value">${warrantyIntel?.claimReadinessScore != null ? warrantyIntel.claimReadinessScore + "%" : "-"}</span>
+                    <span class="intelligence-metric-label">Claim Readiness</span>
+                </div>
+            </div>
         </div>
     </div>`;
 
-    html += `<div class="stats-grid" style="margin-top:var(--spacing-lg);">
-        <div class="stat-card">
-            <div class="stat-card-label">Purchase Cost</div>
-            <div class="stat-card-value">${formatCurrency(ownershipCost?.purchaseCost || 0)}</div>
-        </div>
-        <div class="stat-card card-info">
-            <div class="stat-card-label">Service Cost</div>
-            <div class="stat-card-value">${formatCurrency(ownershipCost?.serviceCost || 0)}</div>
-        </div>
-        <div class="stat-card card-purple">
-            <div class="stat-card-label">Total Ownership Cost</div>
-            <div class="stat-card-value">${formatCurrency(ownershipCost?.totalOwnershipCost || 0)}</div>
-        </div>
-    </div>`;
-
-    if (warrantyIntel) {
-        html += `<div class="stats-grid" style="margin-top:var(--spacing-lg);">
-            <div class="stat-card">
-                <div class="stat-card-label">Warranty Coverage</div>
-                <div class="stat-card-value">${warrantyIntel.activeWarrantyCount || 0} active</div>
+    if (warrantyIntel && warrantyIntel.missingDocuments && warrantyIntel.missingDocuments.length > 0) {
+        html += `<div class="card" style="margin-top:var(--spacing-lg);">
+            <div class="card-header card-header--bordered">
+                <div class="card-header-left">
+                    <div class="card-header-icon card-header-icon--secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Missing Documents</h3>
+                        <p class="card-header-subtitle">Required for warranty claims</p>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card card-green">
-                <div class="stat-card-label">Days Remaining</div>
-                <div class="stat-card-value">${warrantyIntel.daysRemaining != null ? warrantyIntel.daysRemaining : "-"}</div>
-            </div>
-            <div class="stat-card card-purple">
-                <div class="stat-card-label">Claim Readiness</div>
-                <div class="stat-card-value">${warrantyIntel.claimReadinessScore != null ? warrantyIntel.claimReadinessScore + "%" : "-"}</div>
+            <div class="card-body">
+                <ul style="padding-left: var(--spacing-lg); color: var(--color-text-secondary); line-height: 1.8;">${warrantyIntel.missingDocuments.map(doc => `<li>${doc}</li>`).join("")}</ul>
             </div>
         </div>`;
-        if (warrantyIntel.missingDocuments && warrantyIntel.missingDocuments.length > 0) {
-            html += `<div class="card" style="margin-top:var(--spacing-md);">
-                <div class="card-header"><h3 class="card-title">Missing Documents</h3></div>
-                <div class="card-body">
-                    <ul>${warrantyIntel.missingDocuments.map(doc => `<li>${doc}</li>`).join("")}</ul>
-                </div>
-            </div>`;
-        }
     }
 
     if (health) {
-        html += `<div class="stats-grid" style="margin-top:var(--spacing-lg);">
-            <div class="stat-card">
-                <div class="stat-card-label">Health Score</div>
-                <div class="stat-card-value">${health.healthScore != null ? health.healthScore + "/100" : "-"}</div>
-            </div>
-            <div class="stat-card card-green">
-                <div class="stat-card-label">Status</div>
-                <div class="stat-card-value">${getStatusBadge(health.status)}</div>
-            </div>
-            <div class="stat-card card-purple">
-                <div class="stat-card-label">Warranty Status</div>
-                <div class="stat-card-value">${health.warrantyStatus || "-"}</div>
+        html += `<div class="intelligence-grid" style="margin-top:var(--spacing-lg);">
+            <div class="intelligence-card">
+                <div class="intelligence-card-header">
+                    <div class="intelligence-card-icon" style="background:var(--color-warning-light);color:var(--color-warning);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    </div>
+                    <div class="intelligence-card-title">Product Health</div>
+                </div>
+                <div class="intelligence-card-body">
+                    <div class="intelligence-metric">
+                        <span class="intelligence-metric-value">${health.healthScore != null ? health.healthScore + "/100" : "-"}</span>
+                        <span class="intelligence-metric-label">Health Score</span>
+                    </div>
+                    <div class="intelligence-metric">
+                        <span class="intelligence-metric-value">${health.status || "-"}</span>
+                        <span class="intelligence-metric-label">Status</span>
+                    </div>
+                    <div class="intelligence-metric">
+                        <span class="intelligence-metric-value">${health.warrantyStatus || "-"}</span>
+                        <span class="intelligence-metric-label">Warranty Status</span>
+                    </div>
+                </div>
             </div>
         </div>`;
         if (health.alerts && health.alerts.length > 0) {
-            html += `<div class="card" style="margin-top:var(--spacing-md);">
-                <div class="card-header"><h3 class="card-title">Alerts</h3></div>
+            html += `<div class="card" style="margin-top:var(--spacing-lg);">
+                <div class="card-header card-header--bordered">
+                    <div class="card-header-left">
+                        <div class="card-header-icon card-header-icon--secondary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="card-title">Alerts</h3>
+                            <p class="card-header-subtitle">Health and warranty notices</p>
+                        </div>
+                    </div>
+                </div>
                 <div class="card-body">
-                    <ul>${health.alerts.map(alert => `<li>${alert}</li>`).join("")}</ul>
+                    <ul style="padding-left: var(--spacing-lg); color: var(--color-text-secondary); line-height: 1.8;">${health.alerts.map(alert => `<li>${alert}</li>`).join("")}</ul>
                 </div>
             </div>`;
         }

@@ -25,13 +25,13 @@ function showMessage(text, isError = false) {
 
 function getServiceTypeBadge(type) {
     const map = {
-        "REPAIR": "badge-repair",
-        "MAINTENANCE": "badge-maintenance",
-        "INSPECTION": "badge-inspection",
-        "UPGRADE": "badge-upgrade"
+        "REPAIR": "service-type-badge--repair",
+        "MAINTENANCE": "service-type-badge--maintenance",
+        "INSPECTION": "service-type-badge--inspection",
+        "UPGRADE": "service-type-badge--upgrade"
     };
-    const cls = map[type] || "badge-secondary";
-    return `<span class="badge ${cls}">${type || "N/A"}</span>`;
+    const cls = map[type] || "service-type-badge--other";
+    return `<span class="service-type-badge ${cls}">${type || "N/A"}</span>`;
 }
 
 function formatCurrency(amount) {
@@ -39,8 +39,12 @@ function formatCurrency(amount) {
 }
 
 async function getErrorMessage(response) {
-    const error = await response.json().catch(() => null);
-    return error?.message || "Something went wrong. Please try again.";
+    const status = response.status;
+    if (status === 401) return "Please sign in again.";
+    if (status === 403) return "You don't have permission to perform this action.";
+    if (status === 404) return "The requested information could not be found.";
+    if (status === 409) return "This information already exists.";
+    return "Something went wrong. Please try again.";
 }
 
 async function loadProducts() {

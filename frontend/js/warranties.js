@@ -26,13 +26,15 @@ function showMessage(text, isError = false) {
 function getStatusBadge(status) {
     switch (status) {
         case "ACTIVE":
-            return '<span class="badge badge-active">ACTIVE</span>';
+            return '<span class="warranty-status-chip warranty-status-chip--active">ACTIVE</span>';
+        case "EXPIRING":
+            return '<span class="warranty-status-chip warranty-status-chip--expiring">EXPIRING</span>';
         case "EXPIRED":
-            return '<span class="badge badge-expired">EXPIRED</span>';
+            return '<span class="warranty-status-chip warranty-status-chip--expired">EXPIRED</span>';
         case "VOID":
-            return '<span class="badge badge-void">VOID</span>';
+            return '<span class="warranty-status-chip warranty-status-chip--void">VOID</span>';
         default:
-            return `<span class="badge badge-secondary">${status || "UNKNOWN"}</span>`;
+            return `<span class="warranty-status-chip" style="background:var(--color-gray-100);color:var(--color-gray-600);">${status || "UNKNOWN"}</span>`;
     }
 }
 
@@ -111,8 +113,12 @@ function renderOverviewTable(items) {
 }
 
 async function getErrorMessage(response) {
-    const error = await response.json().catch(() => null);
-    return error?.message || "Something went wrong. Please try again.";
+    const status = response.status;
+    if (status === 401) return "Please sign in again.";
+    if (status === 403) return "You don't have permission to perform this action.";
+    if (status === 404) return "The requested information could not be found.";
+    if (status === 409) return "This information already exists.";
+    return "Something went wrong. Please try again.";
 }
 
 async function loadProducts() {

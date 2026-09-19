@@ -114,6 +114,10 @@ async function getNotifications() {
 }
 
 async function getApiErrorMessage(response) {
-    const error = await response.json().catch(() => null);
-    return error?.message || "Something went wrong. Please try again.";
+    const status = response.status;
+    if (status === 401) return "Please sign in again.";
+    if (status === 403) return "You don't have permission to perform this action.";
+    if (status === 404) return "The requested information could not be found.";
+    if (status === 409) return "This information already exists.";
+    return "Something went wrong. Please try again.";
 }

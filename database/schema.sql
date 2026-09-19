@@ -1,3 +1,6 @@
+-- TODO: Move to versioned Flyway migrations before production.
+-- Raw database/schema.sql is used deliberately for now to keep local MySQL setup simple.
+
 CREATE DATABASE IF NOT EXISTS purchase_warranty_tracker
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
@@ -9,7 +12,6 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    public_user_id VARCHAR(20) NOT NULL UNIQUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
