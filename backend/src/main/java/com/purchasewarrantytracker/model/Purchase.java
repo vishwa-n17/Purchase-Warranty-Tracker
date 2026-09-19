@@ -12,6 +12,7 @@ import java.time.LocalDate;
 public class Purchase {
 
     private Long id;
+    private Long userId;
 
     @NotNull(message = "Product ID is required")
     @Positive(message = "Product ID must be a positive number")
@@ -37,6 +38,18 @@ public class Purchase {
     public Purchase(Long id, Long productId, LocalDate purchaseDate, BigDecimal purchasePrice,
                     String storeName, PaymentMethod paymentMethod) {
         this.id = id;
+        this.userId = null;
+        this.productId = productId;
+        this.purchaseDate = purchaseDate;
+        this.purchasePrice = purchasePrice;
+        this.storeName = storeName;
+        this.paymentMethod = paymentMethod;
+    }
+
+    public Purchase(Long id, Long userId, Long productId, LocalDate purchaseDate, BigDecimal purchasePrice,
+                    String storeName, PaymentMethod paymentMethod) {
+        this.id = id;
+        this.userId = userId;
         this.productId = productId;
         this.purchaseDate = purchaseDate;
         this.purchasePrice = purchasePrice;
@@ -50,6 +63,8 @@ public class Purchase {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
     public Long getProductId() { return productId; }
     public void setProductId(Long productId) { this.productId = productId; }
     public LocalDate getPurchaseDate() { return purchaseDate; }

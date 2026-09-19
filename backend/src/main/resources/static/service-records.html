@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Records | VaultTrack</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <header class="app-header">
+            <div class="header-inner">
+                <a href="dashboard.html" class="brand">
+                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="VaultTrack logo">
+                        <path d="M3 7L12 19L21 7" stroke="url(#v-grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="v-grad" x1="0" y1="0" x2="24" y2="0">
+                                <stop stop-color="#4f46e5"/>
+                                <stop offset="1" stop-color="#7c3aed"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                     <span>VaultTrack</span>
+                </a>
+                <button type="button" class="nav-toggle" aria-label="Toggle navigation">☰</button>
+                <nav class="main-nav">
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="index.html" class="nav-link">Products</a>
+                    <a href="purchases.html" class="nav-link">Purchases</a>
+                    <a href="warranties.html" class="nav-link">Warranties</a>
+                    <a href="service-records.html" class="nav-link active">Service Records</a>
+                </nav>
+                <div class="header-actions">
+                    <form id="global-search-form" class="header-search" action="search-results.html" method="GET">
+                        <input id="global-search" type="search" class="header-search-input" placeholder="Search products, warranties..." autocomplete="off">
+                        <button type="submit" class="header-search-btn" aria-label="Search">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </button>
+                    </form>
+                    <div class="header-actions-right">
+                        <button type="button" class="header-icon-btn" id="notification-trigger" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                            <span id="notification-badge" class="header-icon-badge" style="display:none">0</span>
+                        </button>
+                        <div class="user-menu hidden" id="user-menu">
+                        <button type="button" class="user-menu-trigger" id="user-menu-trigger" aria-haspopup="true" aria-expanded="false">
+                            <span class="user-avatar" id="user-avatar">U</span>
+                            <span class="user-name" id="user-name-display">User</span>
+                            <span class="user-menu-arrow">▼</span>
+                        </button>
+                        <div class="user-menu-dropdown" id="user-menu-dropdown">
+                            <a href="profile.html" class="user-menu-item">Profile</a>
+                            <a href="settings.html" class="user-menu-item">Settings</a>
+                            <div class="user-menu-divider"></div>
+                            <button type="button" class="user-menu-item user-menu-logout" id="header-logout">Logout</button>
+                        </div>
+                    </div>
+                    <div class="notification-dropdown" id="notification-dropdown">
+                        <div class="notification-dropdown-header">
+                            <span class="notification-dropdown-title">Notifications</span>
+                        </div>
+                        <div id="notification-empty" class="notification-empty">No notifications</div>
+                        <div id="notification-list" class="notification-list"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="main-content app-body">
+            <div class="page-header page-header--enhanced">
+                <div>
+                    <h1 class="page-title">Service Records</h1>
+                    <p class="page-subtitle">Track repairs, maintenance and service history.</p>
+                </div>
+                <button type="button" class="btn btn-primary btn-lg" onclick="document.getElementById('service-record-form').scrollIntoView({behavior:'smooth',block:'start'})">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Service Record
+                </button>
+            </div>
+            <p id="message" class="message" aria-live="polite"></p>
+
+            <section class="card card-form" aria-labelledby="service-form-heading">
+                <div class="card-header card-header--bordered">
+                    <div class="card-header-left">
+                        <div class="card-header-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        </div>
+                        <div>
+                            <h2 id="service-form-heading" class="card-title">Log or edit a service record</h2>
+                            <p class="card-header-subtitle">Record maintenance and service details</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="service-record-form">
+                        <input id="service-record-id" type="hidden">
+                        <div class="form-section">
+                            <h3 class="form-section-title">Service Details</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="product-id">Product <span class="required">*</span></label>
+                                    <select id="product-id" class="form-select" required>
+                                        <option value="">-- Select a product --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="service-type">Service Type <span class="required">*</span></label>
+                                    <select id="service-type" class="form-select" required>
+                                        <option value="REPAIR">REPAIR</option>
+                                        <option value="MAINTENANCE">MAINTENANCE</option>
+                                        <option value="INSPECTION">INSPECTION</option>
+                                        <option value="UPGRADE">UPGRADE</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="service-date">Service Date <span class="required">*</span></label>
+                                    <input id="service-date" type="date" class="form-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="provider">Service Provider <span class="required">*</span></label>
+                                    <input id="provider" class="form-input" required maxlength="100" placeholder="e.g. Authorized Service Center, Quick Repair">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <h3 class="form-section-title">Cost & Description</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="cost">Cost (₹) <span class="required">*</span></label>
+                                    <div class="input-with-icon">
+                                        <span class="input-icon">₹</span>
+                                        <input id="cost" type="number" step="0.01" min="0" class="form-input form-input--with-icon" required placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="description">Problem / Service Description <span class="required">*</span></label>
+                                    <textarea id="description" class="form-textarea" required maxlength="500" placeholder="Describe the issue or service performed..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" id="submit-service-button" class="btn btn-primary">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                Save service record
+                            </button>
+                            <button id="cancel-edit-button" type="button" class="btn btn-secondary">Cancel edit</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section class="card" aria-labelledby="service-list-heading">
+                <div class="card-header card-header--bordered">
+                    <div class="card-header-left">
+                        <div class="card-header-icon card-header-icon--secondary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        </div>
+                        <div>
+                            <h2 id="service-list-heading" class="card-title">Service History</h2>
+                            <p class="card-header-subtitle">Complete maintenance and repair log</p>
+                        </div>
+                    </div>
+                    <button id="refresh-button" type="button" class="btn btn-secondary btn-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                        Refresh
+                    </button>
+                </div>
+                <div class="card-body card-body--flat">
+                    <div class="table-wrapper">
+                        <table class="data-table data-table--enhanced">
+                            <thead>
+                                <tr>
+                                    <th style="width: 48px;"></th>
+                                    <th>Product</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Provider</th>
+                                    <th>Cost</th>
+                                    <th>Description</th>
+                                    <th style="width: 140px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="service-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="js/auth.js"></script>
+    <script src="js/service-records.js"></script>
+    <script>
+        (async function guard() {
+            const user = await checkAuth();
+            if (!user) return;
+            updateAuthUI(user);
+            initUserMenu();
+            initNotifications();
+            initSearch();
+        })();
+    </script>
+</body>
+</html>

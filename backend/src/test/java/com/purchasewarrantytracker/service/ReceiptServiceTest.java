@@ -18,12 +18,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ReceiptServiceTest {
+
+    private static final long TEST_USER_ID = 1L;
 
     @Mock
     private ReceiptRepository receiptRepository;
@@ -36,16 +39,16 @@ class ReceiptServiceTest {
 
     @Test
     void createSavesValidReceipt() {
-        Receipt receipt = new Receipt(null, null, "receipts/invoice.pdf", LocalDate.of(2026, 6, 15));
-        when(purchaseRepository.existsById(1L)).thenReturn(true);
-        when(receiptRepository.existsByPurchaseId(1L)).thenReturn(false);
+        Receipt receipt = new Receipt(null, TEST_USER_ID, null, "receipts/invoice.pdf", LocalDate.of(2026, 6, 15));
+        when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
+        when(receiptRepository.existsByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(false);
         when(receiptRepository.save(receipt)).thenAnswer(invocation -> {
             Receipt r = invocation.getArgument(0);
             r.setId(5L);
             return r;
         });
 
-        Receipt result = receiptService.create(1L, receipt);
+        Receipt result = receiptService.create(TEST_USER_ID, 1L, receipt);
 
         assertNotNull(result);
         assertEquals(5L, result.getId());
@@ -55,76 +58,76 @@ class ReceiptServiceTest {
 
     @Test
     void createThrowsWhenPurchaseNotFound() {
-        Receipt receipt = new Receipt(null, null, "receipts/invoice.pdf", LocalDate.of(2026, 6, 15));
-        when(purchaseRepository.existsById(99L)).thenReturn(false);
+        Receipt receipt = new Receipt(null, TEST_USER_ID, null, "receipts/invoice.pdf", LocalDate.of(2026, 6, 15));
+        when(purchaseRepository.existsByIdAndUserId(99L, TEST_USER_ID)).thenReturn(false);
 
-        assertThrows(PurchaseNotFoundException.class, () -> receiptService.create(99L, receipt));
+        assertThrows(PurchaseNotFoundException.class, () -> receiptService.create(TEST_USER_ID, 99L, receipt));
         verify(receiptRepository, never()).save(any());
     }
 
     @Test
     void createRejectsEmptyFilePath() {
-        Receipt receipt = new Receipt(null, null, "  ", LocalDate.of(2026, 6, 15));
+        Receipt receipt = new Receipt(null, TEST_USER_ID, null, "  ", LocalDate.of(2026, 6, 15));
 
-        assertThrows(IllegalArgumentException.class, () -> receiptService.create(1L, receipt));
+        assertThrows(IllegalArgumentException.class, () -> receiptService.create(TEST_USER_ID, 1L, receipt));
         verify(receiptRepository, never()).save(any());
     }
 
     @Test
     void createRejectsNullDate() {
-        Receipt receipt = new Receipt(null, null, "receipts/invoice.pdf", null);
+        Receipt receipt = new Receipt(null, TEST_USER_ID, null, "receipts/invoice.pdf", null);
 
-        assertThrows(IllegalArgumentException.class, () -> receiptService.create(1L, receipt));
+        assertThrows(IllegalArgumentException.class, () -> receiptService.create(TEST_USER_ID, 1L, receipt));
         verify(receiptRepository, never()).save(any());
     }
 
     @Test
     void createThrowsWhenReceiptAlreadyExists() {
-        Receipt receipt = new Receipt(null, null, "receipts/invoice.pdf", LocalDate.of(2026, 6, 15));
-        when(purchaseRepository.existsById(1L)).thenReturn(true);
-        when(receiptRepository.existsByPurchaseId(1L)).thenReturn(true);
+        Receipt receipt = new Receipt(null, TEST_USER_ID, null, "receipts/invoice.pdf", LocalDate.of(2026, 6, 15));
+        when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
+        when(receiptRepository.existsByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> receiptService.create(1L, receipt));
+        assertThrows(IllegalArgumentException.class, () -> receiptService.create(TEST_USER_ID, 1L, receipt));
         verify(receiptRepository, never()).save(any());
     }
 
     @Test
     void getByPurchaseIdReturnsReceipt() {
-        Receipt receipt = new Receipt(5L, 1L, "receipts/invoice.pdf", LocalDate.of(2026, 6, 15));
-        when(purchaseRepository.existsById(1L)).thenReturn(true);
-        when(receiptRepository.findByPurchaseId(1L)).thenReturn(Optional.of(receipt));
+        Receipt receipt = new Receipt(5L, TEST_USER_ID, 1L, "receipts/invoice.pdf", LocalDate.of(2026, 6, 15));
+        when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
+        when(receiptRepository.findByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.of(receipt));
 
-        Receipt result = receiptService.getByPurchaseId(1L);
+        Receipt result = receiptService.getByPurchaseId(TEST_USER_ID, 1L);
 
         assertEquals(5L, result.getId());
-        verify(receiptRepository).findByPurchaseId(1L);
+        verify(receiptRepository).findByPurchaseIdAndUserId(1L, TEST_USER_ID);
     }
 
     @Test
     void getByPurchaseIdThrowsWhenPurchaseNotFound() {
-        when(purchaseRepository.existsById(99L)).thenReturn(false);
+        when(purchaseRepository.existsByIdAndUserId(99L, TEST_USER_ID)).thenReturn(false);
 
-        assertThrows(PurchaseNotFoundException.class, () -> receiptService.getByPurchaseId(99L));
+        assertThrows(PurchaseNotFoundException.class, () -> receiptService.getByPurchaseId(TEST_USER_ID, 99L));
     }
 
     @Test
     void getByPurchaseIdThrowsWhenReceiptNotFound() {
-        when(purchaseRepository.existsById(1L)).thenReturn(true);
-        when(receiptRepository.findByPurchaseId(1L)).thenReturn(Optional.empty());
+        when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
+        when(receiptRepository.findByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.empty());
 
-        assertThrows(ReceiptNotFoundException.class, () -> receiptService.getByPurchaseId(1L));
+        assertThrows(ReceiptNotFoundException.class, () -> receiptService.getByPurchaseId(TEST_USER_ID, 1L));
     }
 
     @Test
     void updateModifiesExistingReceipt() {
-        Receipt existing = new Receipt(5L, 1L, "receipts/old.pdf", LocalDate.of(2026, 6, 15));
-        Receipt updated = new Receipt(null, null, "receipts/new.pdf", LocalDate.of(2026, 6, 16));
+        Receipt existing = new Receipt(5L, TEST_USER_ID, 1L, "receipts/old.pdf", LocalDate.of(2026, 6, 15));
+        Receipt updated = new Receipt(null, TEST_USER_ID, null, "receipts/new.pdf", LocalDate.of(2026, 6, 16));
 
-        when(purchaseRepository.existsById(1L)).thenReturn(true);
-        when(receiptRepository.findByPurchaseId(1L)).thenReturn(Optional.of(existing));
+        when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
+        when(receiptRepository.findByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.of(existing));
         when(receiptRepository.update(updated)).thenReturn(true);
 
-        Receipt result = receiptService.update(1L, updated);
+        Receipt result = receiptService.update(TEST_USER_ID, 1L, updated);
 
         assertEquals(5L, result.getId());
         assertEquals(1L, result.getPurchaseId());
@@ -134,32 +137,31 @@ class ReceiptServiceTest {
 
     @Test
     void updateThrowsWhenReceiptNotFound() {
-        Receipt updated = new Receipt(null, null, "receipts/new.pdf", LocalDate.of(2026, 6, 16));
-        when(purchaseRepository.existsById(1L)).thenReturn(true);
-        when(receiptRepository.findByPurchaseId(1L)).thenReturn(Optional.empty());
+        Receipt updated = new Receipt(null, TEST_USER_ID, null, "receipts/new.pdf", LocalDate.of(2026, 6, 16));
+        when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
+        when(receiptRepository.findByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.empty());
 
-        assertThrows(ReceiptNotFoundException.class, () -> receiptService.update(1L, updated));
+        assertThrows(ReceiptNotFoundException.class, () -> receiptService.update(TEST_USER_ID, 1L, updated));
         verify(receiptRepository, never()).update(any());
     }
 
     @Test
     void deleteRemovesReceipt() {
-        when(purchaseRepository.existsById(1L)).thenReturn(true);
-        when(receiptRepository.existsByPurchaseId(1L)).thenReturn(true);
-        when(receiptRepository.deleteByPurchaseId(1L)).thenReturn(true);
+        when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
+        when(receiptRepository.existsByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
+        when(receiptRepository.deleteByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
 
-        receiptService.delete(1L);
+        receiptService.delete(TEST_USER_ID, 1L);
 
-        verify(receiptRepository).deleteByPurchaseId(1L);
+        verify(receiptRepository).deleteByPurchaseIdAndUserId(1L, TEST_USER_ID);
     }
 
     @Test
     void deleteThrowsWhenReceiptNotFound() {
-        when(purchaseRepository.existsById(1L)).thenReturn(true);
-        when(receiptRepository.existsByPurchaseId(1L)).thenReturn(false);
+        when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
+        when(receiptRepository.existsByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(false);
 
-        assertThrows(ReceiptNotFoundException.class, () -> receiptService.delete(1L));
-        verify(receiptRepository, never()).deleteByPurchaseId(1L);
+        assertThrows(ReceiptNotFoundException.class, () -> receiptService.delete(TEST_USER_ID, 1L));
+        verify(receiptRepository, never()).deleteByPurchaseIdAndUserId(eq(1L), any(Long.class));
     }
 }
-

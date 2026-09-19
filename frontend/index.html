@@ -3,50 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Management | Purchase &amp; Warranty Tracker</title>
+    <title>Products | Purchase &amp; Warranty Tracker</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <main class="page-container">
-        <h1>Purchase &amp; Warranty Tracker</h1>
-        <nav class="main-nav">
-            <a href="index.html" class="nav-link active">Products</a>
-            <a href="purchases.html" class="nav-link">Purchases</a>
-            <a href="warranties.html" class="nav-link">Warranties</a>
-        </nav>
-        <p>Product Management</p>
-        <p id="message" class="message" aria-live="polite"></p>
-
-        <section class="status-card" aria-labelledby="product-form-heading">
-            <h2 id="product-form-heading">Add or edit a product</h2>
-            <form id="product-form">
-                <input id="product-id" type="hidden">
-                <label>Name <input id="name" required maxlength="150"></label>
-                <label>Category <input id="category" required maxlength="100"></label>
-                <label>Brand <input id="brand" maxlength="100"></label>
-                <label>Model <input id="model" maxlength="100"></label>
-                <label>Serial number <input id="serial-number" maxlength="150"></label>
-                <label>Notes <textarea id="notes"></textarea></label>
-                <div class="button-row">
-                    <button type="submit">Save product</button>
-                    <button id="cancel-edit-button" type="button" class="secondary">Cancel edit</button>
+    <div class="page-container">
+        <header class="app-header">
+            <div class="header-inner">
+                <a href="index.html" class="brand">
+                    <div class="brand-icon">P</div>
+                    <span>Purchase &amp; Warranty Tracker</span>
+                </a>
+                <button type="button" class="nav-toggle" aria-label="Toggle navigation">☰</button>
+                <nav class="main-nav">
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="index.html" class="nav-link active">Products</a>
+                    <a href="purchases.html" class="nav-link">Purchases</a>
+                    <a href="warranties.html" class="nav-link">Warranties</a>
+                    <a href="service-records.html" class="nav-link">Service Records</a>
+                </nav>
+                <div class="header-actions">
+                    <form id="global-search-form" class="header-search" action="search-results.html" method="GET">
+                        <input id="global-search" type="search" class="header-search-input" placeholder="Search products, warranties..." autocomplete="off">
+                        <button type="submit" class="header-search-btn" aria-label="Search">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </button>
+                    </form>
+                    <div class="header-actions-right">
+                        <button type="button" class="header-icon-btn" id="notification-trigger" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                            <span id="notification-badge" class="header-icon-badge" style="display:none">0</span>
+                        </button>
+                        <div class="user-menu hidden" id="user-menu">
+                        <button type="button" class="user-menu-trigger" id="user-menu-trigger" aria-haspopup="true" aria-expanded="false">
+                            <span class="user-avatar" id="user-avatar">U</span>
+                            <span class="user-name" id="user-name-display">User</span>
+                            <span class="user-menu-arrow">▼</span>
+                        </button>
+                        <div class="user-menu-dropdown" id="user-menu-dropdown">
+                            <a href="profile.html" class="user-menu-item">Profile</a>
+                            <a href="settings.html" class="user-menu-item">Settings</a>
+                            <div class="user-menu-divider"></div>
+                            <button type="button" class="user-menu-item user-menu-logout" id="header-logout">Logout</button>
+                        </div>
+                    </div>
+                    <div class="notification-dropdown" id="notification-dropdown">
+                        <div class="notification-dropdown-header">
+                            <span class="notification-dropdown-title">Notifications</span>
+                        </div>
+                        <div id="notification-empty" class="notification-empty">No notifications</div>
+                        <div id="notification-list" class="notification-list"></div>
+                    </div>
                 </div>
-            </form>
-        </section>
+            </div>
+        </header>
+        <main class="main-content app-body">
+            <div class="page-header page-header--enhanced">
+                <div>
+                    <h1 class="page-title">Products</h1>
+                    <p class="page-subtitle">Manage and track all your registered products in one place.</p>
+                </div>
+                <button type="button" class="btn btn-primary btn-lg" onclick="document.getElementById('product-form').scrollIntoView({behavior:'smooth',block:'start'})">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Product
+                </button>
+            </div>
+            <p id="message" class="message" aria-live="polite"></p>
 
-        <section class="status-card" aria-labelledby="product-list-heading">
-            <div class="section-header">
-                <h2 id="product-list-heading">Products</h2>
-                <button id="refresh-button" type="button">Refresh list</button>
-            </div>
-            <div class="table-wrapper">
-                <table>
-                    <thead><tr><th>Name</th><th>Category</th><th>Brand / Model</th><th>Serial number</th><th>Actions</th></tr></thead>
-                    <tbody id="product-table-body"></tbody>
-                </table>
-            </div>
-        </section>
-    </main>
+            <section class="card card-form" aria-labelledby="product-form-heading">
+                <div class="card-header card-header--bordered">
+                    <div class="card-header-left">
+                        <div class="card-header-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                        </div>
+                        <div>
+                            <h2 id="product-form-heading" class="card-title">Add or edit a product</h2>
+                            <p class="card-header-subtitle">Fill in the product details below</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="product-form">
+                        <input id="product-id" type="hidden">
+                        <div class="form-section">
+                            <h3 class="form-section-title">Product Information</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="name">Product Name <span class="required">*</span></label>
+                                    <input id="name" class="form-input" required maxlength="150" placeholder="e.g. Laptop">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="category">Category <span class="required">*</span></label>
+                                    <input id="category" class="form-input" required maxlength="100" placeholder="e.g. Electronics">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="brand">Brand</label>
+                                    <input id="brand" class="form-input" maxlength="100" placeholder="e.g. Apple">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="model">Model</label>
+                                    <input id="model" class="form-input" maxlength="100" placeholder="e.g. MacBook Pro 14">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <h3 class="form-section-title">Additional Details</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="serial-number">Serial Number</label>
+                                    <input id="serial-number" class="form-input" maxlength="150" placeholder="e.g. SN123456">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="notes">Notes</label>
+                                    <textarea id="notes" class="form-textarea" placeholder="Optional notes..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                Save product
+                            </button>
+                            <button id="cancel-edit-button" type="button" class="btn btn-secondary">Cancel edit</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section class="card" aria-labelledby="product-list-heading">
+                <div class="card-header card-header--bordered">
+                    <div class="card-header-left">
+                        <div class="card-header-icon card-header-icon--secondary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                        </div>
+                        <div>
+                            <h2 id="product-list-heading" class="card-title">Products</h2>
+                            <p class="card-header-subtitle">Your registered product inventory</p>
+                        </div>
+                    </div>
+                    <button id="refresh-button" type="button" class="btn btn-secondary btn-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                        Refresh
+                    </button>
+                </div>
+                <div class="card-body card-body--flat">
+                    <div class="table-wrapper">
+                        <table class="data-table data-table--enhanced">
+                            <thead>
+                                <tr>
+                                    <th style="width: 48px;"></th>
+                                    <th>Product Name</th>
+                                    <th>Category</th>
+                                    <th>Brand / Model</th>
+                                    <th>Serial Number</th>
+                                    <th style="width: 180px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="product-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="product-detail-section" class="card hidden" aria-labelledby="product-detail-heading">
+                <div class="card-header card-header--bordered">
+                    <div class="card-header-left">
+                        <div class="card-header-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <div>
+                            <h2 id="product-detail-heading" class="card-title">Product Intelligence</h2>
+                            <p class="card-header-subtitle">Lifecycle, warranty, health and cost insights</p>
+                        </div>
+                    </div>
+                    <button id="close-detail-button" type="button" class="btn btn-secondary btn-sm">Close</button>
+                </div>
+                <div class="card-body">
+                    <div id="product-detail-content"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="js/auth.js"></script>
+    <script src="js/intelligence.js"></script>
     <script src="js/products.js"></script>
+    <script>
+        (async function guard() {
+            const user = await checkAuth();
+            if (!user) return;
+            updateAuthUI(user);
+            initUserMenu();
+            initNotifications();
+            initSearch();
+        })();
+    </script>
 </body>
 </html>

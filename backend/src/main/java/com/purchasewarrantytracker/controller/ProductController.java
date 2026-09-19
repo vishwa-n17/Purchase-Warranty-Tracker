@@ -1,10 +1,10 @@
 package com.purchasewarrantytracker.controller;
 
 import com.purchasewarrantytracker.model.Product;
+import com.purchasewarrantytracker.security.AuthenticatedUserProvider;
 import com.purchasewarrantytracker.service.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,18 +23,21 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/products")
 @Validated
-@Profile("mysql")
 public class ProductController {
 
     private final ProductService productService;
+    private final AuthenticatedUserProvider authenticatedUserProvider;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, AuthenticatedUserProvider authenticatedUserProvider) {
         this.productService = productService;
+        this.authenticatedUserProvider = authenticatedUserProvider;
     }
 
     @PostMapping
     public ResponseEntity<Product> create(@Valid @RequestBody Product product) {
-        Product createdProduct = productService.create(product);
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
+        product.setUserId(userId);
+        Product createdProduct = productService.create(userId, product);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdProduct.getId())
@@ -44,23 +47,27 @@ public class ProductController {
 
     @GetMapping
     public List<Product> getAll() {
-        return productService.getAll();
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
+        return productService.getAll(userId);
     }
 
     @GetMapping("/{id}")
     public Product getById(@PathVariable @Positive(message = "Product ID must be a positive number") long id) {
-        return productService.getById(id);
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
+        return productService.getById(userId, id);
     }
 
     @PutMapping("/{id}")
     public Product update(@PathVariable @Positive(message = "Product ID must be a positive number") long id,
                           @Valid @RequestBody Product product) {
-        return productService.update(id, product);
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
+        return productService.update(userId, id, product);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @Positive(message = "Product ID must be a positive number") long id) {
-        productService.delete(id);
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
+        productService.delete(userId, id);
         return ResponseEntity.noContent().build();
     }
 }

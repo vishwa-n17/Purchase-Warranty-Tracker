@@ -25,3 +25,4 @@ backend/src/main/resources/application-mysql.properties
 # Operating systems
 .DS_Store
 Thumbs.db
+cookie.jar

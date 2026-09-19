@@ -1,10 +1,10 @@
 package com.purchasewarrantytracker.controller;
 
 import com.purchasewarrantytracker.model.Receipt;
+import com.purchasewarrantytracker.security.AuthenticatedUserProvider;
 import com.purchasewarrantytracker.service.ReceiptService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,20 +22,22 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/purchases/{purchaseId}/receipt")
 @Validated
-@Profile("mysql")
 public class ReceiptController {
 
     private final ReceiptService receiptService;
+    private final AuthenticatedUserProvider authenticatedUserProvider;
 
-    public ReceiptController(ReceiptService receiptService) {
+    public ReceiptController(ReceiptService receiptService, AuthenticatedUserProvider authenticatedUserProvider) {
         this.receiptService = receiptService;
+        this.authenticatedUserProvider = authenticatedUserProvider;
     }
 
     @PostMapping
     public ResponseEntity<Receipt> create(
             @PathVariable @Positive(message = "Purchase ID must be a positive number") long purchaseId,
             @Valid @RequestBody Receipt receipt) {
-        Receipt createdReceipt = receiptService.create(purchaseId, receipt);
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
+        Receipt createdReceipt = receiptService.create(userId, purchaseId, receipt);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().build().toUri();
         return ResponseEntity.created(location).body(createdReceipt);
     }
@@ -43,21 +45,23 @@ public class ReceiptController {
     @GetMapping
     public Receipt getByPurchaseId(
             @PathVariable @Positive(message = "Purchase ID must be a positive number") long purchaseId) {
-        return receiptService.getByPurchaseId(purchaseId);
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
+        return receiptService.getByPurchaseId(userId, purchaseId);
     }
 
     @PutMapping
     public Receipt update(
             @PathVariable @Positive(message = "Purchase ID must be a positive number") long purchaseId,
             @Valid @RequestBody Receipt receipt) {
-        return receiptService.update(purchaseId, receipt);
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
+        return receiptService.update(userId, purchaseId, receipt);
     }
 
     @DeleteMapping
     public ResponseEntity<Void> delete(
             @PathVariable @Positive(message = "Purchase ID must be a positive number") long purchaseId) {
-        receiptService.delete(purchaseId);
+        Long userId = authenticatedUserProvider.getCurrentUser().getId();
+        receiptService.delete(userId, purchaseId);
         return ResponseEntity.noContent().build();
     }
 }
-

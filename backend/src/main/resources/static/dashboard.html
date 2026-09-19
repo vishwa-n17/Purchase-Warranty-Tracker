@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | VaultTrack</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <header class="app-header">
+            <div class="header-inner">
+                <a href="dashboard.html" class="brand">
+                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="VaultTrack logo">
+                        <path d="M3 7L12 19L21 7" stroke="url(#v-grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="v-grad" x1="0" y1="0" x2="24" y2="0">
+                                <stop stop-color="#4f46e5"/>
+                                <stop offset="1" stop-color="#7c3aed"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                     <span>VaultTrack</span>
+                </a>
+                <button type="button" class="nav-toggle" aria-label="Toggle navigation">☰</button>
+                <nav class="main-nav">
+                    <a href="dashboard.html" class="nav-link active">Dashboard</a>
+                    <a href="index.html" class="nav-link">Products</a>
+                    <a href="purchases.html" class="nav-link">Purchases</a>
+                    <a href="warranties.html" class="nav-link">Warranties</a>
+                    <a href="service-records.html" class="nav-link">Service Records</a>
+                </nav>
+                <div class="header-actions">
+                    <form id="global-search-form" class="header-search" action="search-results.html" method="GET">
+                        <input id="global-search" type="search" class="header-search-input" placeholder="Search products, warranties..." autocomplete="off">
+                        <button type="submit" class="header-search-btn" aria-label="Search">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </button>
+                    </form>
+                    <div class="header-actions-right">
+                        <button type="button" class="header-icon-btn" id="notification-trigger" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                            <span id="notification-badge" class="header-icon-badge" style="display:none">0</span>
+                        </button>
+                        <div class="user-menu hidden" id="user-menu">
+                        <button type="button" class="user-menu-trigger" id="user-menu-trigger" aria-haspopup="true" aria-expanded="false">
+                            <span class="user-avatar" id="user-avatar">U</span>
+                            <span class="user-name" id="user-name-display">User</span>
+                            <span class="user-menu-arrow">▼</span>
+                        </button>
+                        <div class="user-menu-dropdown" id="user-menu-dropdown">
+                            <a href="profile.html" class="user-menu-item">Profile</a>
+                            <a href="settings.html" class="user-menu-item">Settings</a>
+                            <div class="user-menu-divider"></div>
+                            <button type="button" class="user-menu-item user-menu-logout" id="header-logout">Logout</button>
+                        </div>
+                    </div>
+                    <div class="notification-dropdown" id="notification-dropdown">
+                        <div class="notification-dropdown-header">
+                            <span class="notification-dropdown-title">Notifications</span>
+                        </div>
+                        <div id="notification-empty" class="notification-empty">No notifications</div>
+                        <div id="notification-list" class="notification-list"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="main-content app-body">
+            <div class="dashboard-hero">
+                <div class="dashboard-hero-content">
+                    <div>
+                        <h1 class="dashboard-hero-title">Welcome back, <span id="welcome-name">User</span></h1>
+                        <p class="dashboard-hero-subtitle">Here's an overview of your purchases, warranties, and service activity.</p>
+                    </div>
+                    <a href="index.html" class="btn btn-primary btn-lg dashboard-hero-action">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Add Product
+                    </a>
+                </div>
+            </div>
+            <p id="message" class="message" aria-live="polite"></p>
+
+            <section class="stats-grid" aria-label="System Metrics">
+                <div class="stat-card">
+                    <div class="stat-card-icon primary">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    </div>
+                    <div class="stat-card-label">Total Products</div>
+                    <div class="stat-card-value" id="total-products">-</div>
+                    <div class="stat-card-subtext">Registered items</div>
+                </div>
+
+                <div class="stat-card card-purple">
+                    <div class="stat-card-icon purple">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <div class="stat-card-label">Total Spend</div>
+                    <div class="stat-card-value" id="total-spent">-</div>
+                    <div class="stat-card-subtext" id="spend-breakdown">Purchases + Repairs</div>
+                </div>
+
+                <div class="stat-card card-green">
+                    <div class="stat-card-icon success">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div class="stat-card-label">Active Warranties</div>
+                    <div class="stat-card-value" id="active-warranties">-</div>
+                    <div class="stat-card-subtext">
+                        <span class="badge badge-active">Protected</span>
+                    </div>
+                </div>
+
+                <div class="stat-card card-red">
+                    <div class="stat-card-icon danger">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <div class="stat-card-label">Expired Warranties</div>
+                    <div class="stat-card-value" id="expired-warranties">-</div>
+                    <div class="stat-card-subtext">
+                        <span class="badge badge-expired">Expired</span>
+                    </div>
+                </div>
+
+                <div class="stat-card card-info">
+                    <div class="stat-card-icon info">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    </div>
+                    <div class="stat-card-label">Service Spend</div>
+                    <div class="stat-card-value" id="service-spend">-</div>
+                    <div class="stat-card-subtext">Maintenance &amp; repairs</div>
+                </div>
+            </section>
+
+            <section class="card" aria-labelledby="warranty-action-heading">
+                <div class="card-header card-header--bordered">
+                    <div class="card-header-left">
+                        <div class="card-header-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div>
+                            <h2 id="warranty-action-heading" class="card-title">Warranty Action Center</h2>
+                            <p class="card-header-subtitle">Expiring warranties and renewal reminders</p>
+                        </div>
+                    </div>
+                    <a href="warranties.html" class="btn btn-secondary btn-sm">View all warranties</a>
+                </div>
+                <div class="card-body">
+                    <div id="warranty-action-content"></div>
+                </div>
+            </section>
+
+            <section class="card" aria-labelledby="health-heading">
+                <div class="card-header card-header--bordered">
+                    <div class="card-header-left">
+                        <div class="card-header-icon card-header-icon--secondary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        </div>
+                        <div>
+                            <h2 id="health-heading" class="card-title">Product Health</h2>
+                            <p class="card-header-subtitle">Status across your inventory</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="health-content"></div>
+                </div>
+            </section>
+
+            <section class="card" aria-labelledby="activity-heading">
+                <div class="card-header card-header--bordered">
+                    <div class="card-header-left">
+                        <div class="card-header-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        </div>
+                        <div>
+                            <h2 id="activity-heading" class="card-title">Recent Activity</h2>
+                            <p class="card-header-subtitle">Latest purchases, warranties, and services</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="activity-content"></div>
+                </div>
+            </section>
+
+            <section class="card" aria-labelledby="quick-navigation-heading">
+                <div class="card-header">
+                    <h2 id="quick-navigation-heading" class="card-title">Quick Actions</h2>
+                    <button id="refresh-button" type="button" class="btn btn-secondary btn-sm">Refresh statistics</button>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted" style="margin-bottom: var(--spacing-md);">Select a module to manage your data.</p>
+                    <div class="quick-actions">
+                        <a href="index.html" class="quick-action-card qa-product">
+                            <div class="quick-action-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                            </div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Add Product</div>
+                                <div class="quick-action-description">Register a new product in your inventory.</div>
+                                <span class="quick-action-cta">Add product <span aria-hidden="true">→</span></span>
+                            </div>
+                        </a>
+                        <a href="purchases.html" class="quick-action-card qa-purchase">
+                            <div class="quick-action-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                            </div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Record Purchase</div>
+                                <div class="quick-action-description">Track a new purchase and attach a receipt.</div>
+                                <span class="quick-action-cta">Add purchase <span aria-hidden="true">→</span></span>
+                            </div>
+                        </a>
+                        <a href="warranties.html" class="quick-action-card qa-warranty">
+                            <div class="quick-action-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Check Warranties</div>
+                                <div class="quick-action-description">View warranty status and expiry dates.</div>
+                                <span class="quick-action-cta">View warranties <span aria-hidden="true">→</span></span>
+                            </div>
+                        </a>
+                        <a href="service-records.html" class="quick-action-card qa-service">
+                            <div class="quick-action-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                            </div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Add Service Record</div>
+                                <div class="quick-action-description">Record maintenance and service costs.</div>
+                                <span class="quick-action-cta">Add service <span aria-hidden="true">→</span></span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="js/auth.js"></script>
+    <script src="js/intelligence.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        (async function guard() {
+            const user = await checkAuth();
+            if (!user) return;
+            updateAuthUI(user);
+            initUserMenu();
+            initNotifications();
+            initSearch();
+        })();
+    </script>
+</body>
+</html>
