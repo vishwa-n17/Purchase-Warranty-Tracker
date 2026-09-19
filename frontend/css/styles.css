@@ -3312,3 +3312,330 @@ a:focus:not(:focus-visible) {
     color: var(--color-text-secondary);
     line-height: 1.5;
 }
+
+/* ===== Enhanced Dashboard ===== */
+.dashboard-section + .dashboard-section {
+    margin-top: var(--spacing-lg);
+}
+
+.stat-card-value {
+    font-size: 2.25rem;
+    font-weight: 750;
+    letter-spacing: -0.03em;
+}
+
+.stat-card-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.stat-card-subtext {
+    font-size: 0.8125rem;
+    color: var(--color-text-tertiary);
+    margin-top: var(--spacing-xs);
+}
+
+/* ===== Product Status ===== */
+.product-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.product-status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: currentColor;
+}
+
+.product-status-badge--active {
+    background: var(--color-success-light);
+    color: #065f46;
+}
+
+.product-status-badge--inactive {
+    background: var(--color-gray-100);
+    color: var(--color-gray-600);
+}
+
+/* ===== Warranty Status Chips ===== */
+.warranty-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.warranty-status-chip::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: currentColor;
+}
+
+.warranty-status-chip--active {
+    background: var(--color-success-light);
+    color: #065f46;
+}
+
+.warranty-status-chip--expiring {
+    background: var(--color-warning-light);
+    color: #92400e;
+}
+
+.warranty-status-chip--expired {
+    background: var(--color-danger-light);
+    color: #991b1b;
+}
+
+.warranty-status-chip--void {
+    background: var(--color-gray-100);
+    color: var(--color-gray-600);
+}
+
+/* ===== Notification Severity ===== */
+.notification-item--high {
+    border-left: 3px solid var(--color-danger);
+}
+
+.notification-item--medium {
+    border-left: 3px solid var(--color-warning);
+}
+
+.notification-item--low {
+    border-left: 3px solid var(--color-info);
+}
+
+/* ===== Intelligence Cards ===== */
+.intelligence-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.intelligence-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-xs);
+    border: 1px solid var(--color-border-subtle);
+    transition: all var(--transition-base);
+}
+
+.intelligence-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.intelligence-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.intelligence-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.intelligence-card-title {
+    font-size: 0.9375rem;
+    font-weight: 650;
+    color: var(--color-text);
+    letter-spacing: -0.005em;
+}
+
+.intelligence-card-body {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+}
+
+.intelligence-metric {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.intelligence-metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -0.02em;
+}
+
+.intelligence-metric-label {
+    font-size: 0.8125rem;
+    color: var(--color-text-tertiary);
+}
+
+/* ===== Enhanced Timeline ===== */
+.timeline {
+    position: relative;
+    padding-left: var(--spacing-lg);
+}
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--color-border);
+    border-radius: var(--radius-full);
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: var(--spacing-lg);
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: calc(-1 * var(--spacing-lg) + 3px);
+    top: 6px;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    border: 2px solid var(--color-surface);
+    box-shadow: var(--shadow-2xs);
+}
+
+.timeline-marker--purchase { background: var(--color-success); }
+.timeline-marker--warranty { background: var(--color-primary); }
+.timeline-marker--service { background: var(--color-warning); }
+.timeline-marker--default { background: var(--color-text-tertiary); }
+
+.timeline-content {
+    padding-left: var(--spacing-md);
+}
+
+.timeline-date {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+}
+
+.timeline-title {
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 2px;
+    font-size: 0.9375rem;
+}
+
+.timeline-text {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+
+/* ===== Health Score Circle ===== */
+.health-score {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    font-size: 1rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.health-score--good {
+    background: var(--color-success-light);
+    color: #065f46;
+}
+
+.health-score--fair {
+    background: var(--color-warning-light);
+    color: #92400e;
+}
+
+.health-score--poor {
+    background: var(--color-danger-light);
+    color: #991b1b;
+}
+
+/* ===== Service Record Type Badge ===== */
+.service-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.service-type-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: currentColor;
+}
+
+.service-type-badge--repair {
+    background: var(--color-danger-light);
+    color: #991b1b;
+}
+
+.service-type-badge--maintenance {
+    background: var(--color-info-light);
+    color: #155e75;
+}
+
+.service-type-badge--inspection {
+    background: var(--color-warning-light);
+    color: #92400e;
+}
+
+.service-type-badge--upgrade {
+    background: var(--color-purple-light);
+    color: #5b21b6;
+}
+
+.service-type-badge--other {
+    background: var(--color-gray-100);
+    color: var(--color-gray-600);
+}

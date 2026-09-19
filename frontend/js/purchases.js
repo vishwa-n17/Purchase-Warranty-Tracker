@@ -40,7 +40,8 @@ function getPaymentBadge(method) {
         "OTHER": "badge-other"
     };
     const cls = map[method] || "badge-secondary";
-    return `<span class="badge ${cls}">${method || "N/A"}</span>`;
+    const label = method === "BANK_TRANSFER" ? "BANK TRANSFER" : (method || "N/A");
+    return `<span class="badge ${cls}">${label}</span>`;
 }
 
 function formatCurrency(amount) {
@@ -48,8 +49,12 @@ function formatCurrency(amount) {
 }
 
 async function getErrorMessage(response) {
-    const error = await response.json().catch(() => null);
-    return error?.message || "Something went wrong. Please try again.";
+    const status = response.status;
+    if (status === 401) return "Please sign in again.";
+    if (status === 403) return "You don't have permission to perform this action.";
+    if (status === 404) return "The requested information could not be found.";
+    if (status === 409) return "This information already exists.";
+    return "Something went wrong. Please try again.";
 }
 
 async function loadProducts() {

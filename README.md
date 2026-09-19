@@ -12,24 +12,26 @@ A Semester 3 Java web project for recording purchased products, their receipts, 
 ## Project structure
 
 ```text
-frontend/  Static browser interface
-backend/   Spring Boot REST API
-database/  Database notes and future SQL scripts
-docs/      Project documentation
+backend/src/main/resources/static/  Frontend files, served by Spring Boot
+backend/                             Spring Boot REST API
+database/                            Database notes and SQL scripts
+docs/                                Project documentation
 ```
 
 ## Run locally
 
 1. Start the backend:
 
-   ```powershell
-   cd backend
-   mvn spring-boot:run
-   ```
+    ```powershell
+    cd backend
+    mvn spring-boot:run
+    ```
 
-2. Open `frontend/index.html` in a browser, or serve the repository root with a static-file extension such as VS Code Live Server.
+2. Open `http://localhost:8080/login.html` in a browser.
 
-The frontend checks `http://localhost:8080/api/health`.
+Do NOT open the HTML files via Live Server or `file://` anymore, because the frontend
+is now served by the backend itself on the same origin as the API. Opening the pages
+from a separate origin breaks session cookies and authentication.
 
 ## MySQL setup
 

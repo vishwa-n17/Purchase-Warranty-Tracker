@@ -7,13 +7,45 @@ function showAuthMessage(text, isError = false) {
     messageEl.className = `message ${isError ? "error" : "success"} visible`;
 }
 
-async function getErrorMessage(response) {
-    try {
-        const error = await response.json();
-        return error?.message || "Something went wrong. Please try again.";
-    } catch {
-        return "Something went wrong. Please try again.";
+function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function showFieldError(inputId, message) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.classList.add("form-input--error");
+    const hint = input.parentElement.querySelector(".form-hint");
+    if (hint) {
+        hint.textContent = message;
+        hint.classList.add("form-hint--error");
     }
+}
+
+function clearFieldError(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.classList.remove("form-input--error");
+    const hint = input.parentElement.querySelector(".form-hint");
+    if (hint) {
+        hint.classList.remove("form-hint--error");
+    }
+}
+
+function clearAllFieldErrors(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    form.querySelectorAll(".form-input--error").forEach(el => el.classList.remove("form-input--error"));
+    form.querySelectorAll(".form-hint--error").forEach(el => el.classList.remove("form-hint--error"));
+}
+
+async function getErrorMessage(response) {
+    const status = response.status;
+    if (status === 401) return "Please sign in again.";
+    if (status === 403) return "You don't have permission to perform this action.";
+    if (status === 404) return "The requested information could not be found.";
+    if (status === 409) return "This information already exists.";
+    return "Something went wrong. Please try again.";
 }
 
 async function handleSignup(name, email, password) {
@@ -58,8 +90,8 @@ async function handleLogin(email, password) {
 
         showAuthMessage("Signed in successfully! Redirecting…");
         setTimeout(() => {
-            window.location.href = "dashboard.html";
-        }, 800);
+            window.location.href = "index.html";
+        }, 300);
     } catch (error) {
         showAuthMessage("Could not reach the server. Please try again.", true);
         console.error("Login error:", error);
@@ -105,6 +137,11 @@ function updateAuthUI(user) {
     const nameDisplay = document.getElementById("user-name-display");
     const avatarEl = document.getElementById("user-avatar");
     const userMenu = document.getElementById("user-menu");
+    const welcomeNameEl = document.getElementById("welcome-name");
+
+    if (welcomeNameEl) {
+        welcomeNameEl.textContent = user.name || "User";
+    }
 
     if (nameDisplay) {
         nameDisplay.textContent = user.name || "User";
@@ -233,7 +270,9 @@ function renderNotificationsList(notifications) {
     if (empty) empty.style.display = "none";
     notifications.forEach(n => {
         const item = document.createElement("div");
-        item.className = "notification-item";
+        const severity = (n.severity || "").toUpperCase();
+        const severityClass = severity === "HIGH" ? "notification-item--high" : severity === "MEDIUM" ? "notification-item--medium" : severity === "LOW" ? "notification-item--low" : "";
+        item.className = `notification-item ${severityClass}`;
         item.innerHTML = `
             <div class="notification-item-icon">${n.icon || "🔔"}</div>
             <div class="notification-item-content">

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "mcp": {
+    "inspo": {
+      "type": "remote",
+      "url": "https://inspomcp.dev/api/mcp",
+      "enabled": true,
+      "timeout": 15000
+    }
+  }
+}

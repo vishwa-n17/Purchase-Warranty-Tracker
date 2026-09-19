@@ -24,7 +24,6 @@ async function loadProfile() {
         document.getElementById("profile-email").textContent = user.email || "-";
         document.getElementById("profile-detail-name").textContent = user.name || "-";
         document.getElementById("profile-detail-email").textContent = user.email || "-";
-        document.getElementById("profile-detail-id").textContent = user.publicUserId || "-";
 
         const avatarEl = document.getElementById("profile-avatar");
         if (avatarEl) {

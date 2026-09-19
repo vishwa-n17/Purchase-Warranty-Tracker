@@ -112,15 +112,15 @@ function getStatusBadge(status) {
     switch ((status || "").toUpperCase()) {
         case "ACTIVE":
         case "IN_SERVICE":
-            return '<span class="badge badge-active">ACTIVE</span>';
+            return '<span class="warranty-status-chip warranty-status-chip--active">ACTIVE</span>';
         case "EXPIRED":
-            return '<span class="badge badge-expired">EXPIRED</span>';
+            return '<span class="warranty-status-chip warranty-status-chip--expired">EXPIRED</span>';
         case "VOID":
-            return '<span class="badge badge-void">VOID</span>';
+            return '<span class="warranty-status-chip warranty-status-chip--void">VOID</span>';
         case "NEEDS_SERVICE":
-            return '<span class="badge badge-warning">NEEDS SERVICE</span>';
+            return '<span class="warranty-status-chip" style="background:var(--color-warning-light);color:#92400e;">NEEDS SERVICE</span>';
         default:
-            return `<span class="badge badge-secondary">${status || "UNKNOWN"}</span>`;
+            return `<span class="warranty-status-chip" style="background:var(--color-gray-100);color:var(--color-gray-600);">${status || "UNKNOWN"}</span>`;
     }
 }
 
@@ -128,7 +128,7 @@ function renderHealth(healths) {
     const container = document.getElementById("health-content");
     if (!container) return;
     if (!healths || healths.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏥</div><div class="empty-state-title">No product health data available</div></div>';
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏥</div><div class="empty-state-title">No product health data available</div><div class="empty-state-text">Health scores will appear here once products have enough history.</div></div>';
         return;
     }
     container.innerHTML = `<div class="table-wrapper">
@@ -141,13 +141,34 @@ function renderHealth(healths) {
                 </tr>
             </thead>
             <tbody>
-                ${healths.map(h => `
-                    <tr>
-                        <td>${h.productName || `Product #${h.productId}`}</td>
-                        <td>${h.score != null ? h.score + "/100" : "-"}</td>
-                        <td>${h.label || "-"}</td>
-                    </tr>
-                `).join("")}
+                ${healths.map(h => {
+                    const score = h.score != null ? h.score : null;
+                    let scoreClass = "health-score--fair";
+                    let scoreLabel = "Fair";
+                    let scoreColor = "var(--color-warning)";
+                    if (score != null) {
+                        if (score >= 80) { scoreClass = "health-score--good"; scoreLabel = "Good"; scoreColor = "var(--color-success)"; }
+                        else if (score < 50) { scoreClass = "health-score--poor"; scoreLabel = "Poor"; scoreColor = "var(--color-danger)"; }
+                    }
+                    const circumference = 2 * Math.PI * 18;
+                    const offset = score != null ? circumference - (score / 100) * circumference : circumference;
+                    return `<tr>
+                        <td><strong>${h.productName || `Product #${h.productId}`}</strong></td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:var(--spacing-sm);">
+                                <div class="health-score-ring" style="width:44px;height:44px;position:relative;flex-shrink:0;">
+                                    <svg width="44" height="44" viewBox="0 0 44 44" style="transform:rotate(-90deg);">
+                                        <circle cx="22" cy="22" r="18" fill="none" stroke="var(--color-border-subtle)" stroke-width="4"/>
+                                        <circle cx="22" cy="22" r="18" fill="none" stroke="${scoreColor}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset 0.6s ease;"/>
+                                    </svg>
+                                    <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:600;color:var(--color-text);">${score != null ? score : "-"}</span>
+                                </div>
+                                <span style="font-size:0.8125rem;color:var(--color-text-secondary);">${score != null ? `/ 100 · ${scoreLabel}` : ""}</span>
+                            </div>
+                        </td>
+                        <td>${h.label ? `<span class="badge ${h.label === 'Good' ? 'badge-success' : h.label === 'Fair' ? 'badge-warning' : 'badge-danger'}">${h.label}</span>` : '-'}</td>
+                    </tr>`;
+                }).join("")}
             </tbody>
         </table>
     </div>`;
@@ -157,7 +178,7 @@ function renderActivity(activities) {
     const container = document.getElementById("activity-content");
     if (!container) return;
     if (!activities || activities.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-title">No recent activity</div></div>';
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-title">No recent activity yet</div><div class="empty-state-text">Purchases, warranties, and service records will appear here.</div></div>';
         return;
     }
     container.innerHTML = `<div class="timeline">

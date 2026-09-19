@@ -21,7 +21,6 @@ async function loadSettings() {
 
         document.getElementById("settings-name").textContent = user.name || "-";
         document.getElementById("settings-email").textContent = user.email || "-";
-        document.getElementById("settings-user-id").textContent = user.publicUserId || "-";
     } catch (error) {
         showMessage("Account information is temporarily unavailable.", true);
         console.error("Settings load error:", error);
@@ -58,5 +57,23 @@ document.getElementById("password-form").addEventListener("submit", async functi
 document.getElementById("logout-button").addEventListener("click", async function() {
     await handleLogout();
 });
+
+const deleteAccountButton = document.getElementById("delete-account-button");
+if (deleteAccountButton) {
+    deleteAccountButton.addEventListener("click", async function() {
+        if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.")) {
+            return;
+        }
+        const result = await deleteAccount();
+        if (result.success) {
+            showMessage("Your account has been deleted. Redirecting…");
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 1500);
+        } else {
+            showMessage(result.message || "Failed to delete account. Please try again.", true);
+        }
+    });
+}
 
 loadSettings();
