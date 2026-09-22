@@ -33,7 +33,7 @@ public class ReceiptRepository {
     }
 
     public Receipt save(Receipt receipt) {
-        String sql = "INSERT INTO receipts (user_id, purchase_id, receipt_file_path, receipt_date) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO receipts (user_id, purchase_id, receipt_file_path, receipt_date, image_file_name, image_content_type, image_data) VALUES (?, ?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -42,6 +42,9 @@ public class ReceiptRepository {
             statement.setLong(2, receipt.getPurchaseId());
             statement.setString(3, receipt.getReceiptFilePath());
             statement.setDate(4, Date.valueOf(receipt.getReceiptDate()));
+            statement.setString(5, receipt.getImageFileName());
+            statement.setString(6, receipt.getImageContentType());
+            statement.setBytes(7, receipt.getImageData());
             return statement;
         }, keyHolder);
 
@@ -98,6 +101,27 @@ public class ReceiptRepository {
                 receipt.getUserId()
         );
         return updatedRows == 1;
+    }
+
+    public boolean updateImage(Receipt receipt) {
+        String sql = "UPDATE receipts SET receipt_file_path = ?, receipt_date = ?, image_file_name = ?, image_content_type = ?, image_data = ? WHERE purchase_id = ? AND user_id = ?";
+        return jdbcTemplate.update(sql,
+                receipt.getReceiptFilePath(), Date.valueOf(receipt.getReceiptDate()),
+                receipt.getImageFileName(), receipt.getImageContentType(), receipt.getImageData(),
+                receipt.getPurchaseId(), receipt.getUserId()) == 1;
+    }
+
+    public Optional<Receipt> findImageByPurchaseIdAndUserId(long purchaseId, Long userId) {
+        List<Receipt> receipts = jdbcTemplate.query(
+                "SELECT id, user_id, purchase_id, receipt_file_path, receipt_date, image_file_name, image_content_type, image_data FROM receipts WHERE purchase_id = ? AND user_id = ?",
+                (resultSet, rowNumber) -> {
+                    Receipt receipt = RECEIPT_ROW_MAPPER.mapRow(resultSet, rowNumber);
+                    receipt.setImageFileName(resultSet.getString("image_file_name"));
+                    receipt.setImageContentType(resultSet.getString("image_content_type"));
+                    receipt.setImageData(resultSet.getBytes("image_data"));
+                    return receipt;
+                }, purchaseId, userId);
+        return receipts.stream().findFirst();
     }
 
     public boolean deleteByPurchaseId(long purchaseId) {

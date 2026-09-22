@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -95,12 +96,12 @@ class ReceiptServiceTest {
     void getByPurchaseIdReturnsReceipt() {
         Receipt receipt = new Receipt(5L, TEST_USER_ID, 1L, "receipts/invoice.pdf", LocalDate.of(2026, 6, 15));
         when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
-        when(receiptRepository.findByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.of(receipt));
+        when(receiptRepository.findImageByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.of(receipt));
 
         Receipt result = receiptService.getByPurchaseId(TEST_USER_ID, 1L);
 
         assertEquals(5L, result.getId());
-        verify(receiptRepository).findByPurchaseIdAndUserId(1L, TEST_USER_ID);
+        verify(receiptRepository).findImageByPurchaseIdAndUserId(1L, TEST_USER_ID);
     }
 
     @Test
@@ -113,7 +114,7 @@ class ReceiptServiceTest {
     @Test
     void getByPurchaseIdThrowsWhenReceiptNotFound() {
         when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
-        when(receiptRepository.findByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.empty());
+        when(receiptRepository.findImageByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.empty());
 
         assertThrows(ReceiptNotFoundException.class, () -> receiptService.getByPurchaseId(TEST_USER_ID, 1L));
     }
@@ -163,5 +164,35 @@ class ReceiptServiceTest {
 
         assertThrows(ReceiptNotFoundException.class, () -> receiptService.delete(TEST_USER_ID, 1L));
         verify(receiptRepository, never()).deleteByPurchaseIdAndUserId(eq(1L), any(Long.class));
+    }
+
+    @Test
+    void uploadImageCreatesReceiptForOwnedPurchase() {
+        byte[] png = {(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0};
+        MockMultipartFile image = new MockMultipartFile("image", "receipt.png", "image/png", png);
+        when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
+        when(receiptRepository.findByPurchaseIdAndUserId(1L, TEST_USER_ID)).thenReturn(Optional.empty());
+        when(receiptRepository.save(any(Receipt.class))).thenAnswer(invocation -> {
+            Receipt receipt = invocation.getArgument(0);
+            receipt.setId(7L);
+            return receipt;
+        });
+
+        Receipt result = receiptService.uploadImage(TEST_USER_ID, 1L, image, null, LocalDate.of(2026, 6, 15));
+
+        assertEquals(7L, result.getId());
+        assertEquals("receipt.png", result.getReceiptFilePath());
+        assertEquals("image/png", result.getImageContentType());
+        assertEquals(8, result.getImageData().length);
+    }
+
+    @Test
+    void uploadImageRejectsNonImageContent() {
+        MockMultipartFile image = new MockMultipartFile("image", "receipt.txt", "text/plain", "not an image".getBytes());
+        when(purchaseRepository.existsByIdAndUserId(1L, TEST_USER_ID)).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> receiptService.uploadImage(TEST_USER_ID, 1L, image, null, LocalDate.of(2026, 6, 15)));
+        verify(receiptRepository, never()).save(any());
     }
 }

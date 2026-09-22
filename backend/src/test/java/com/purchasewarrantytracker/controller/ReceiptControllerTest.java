@@ -16,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDate;
 
@@ -27,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -113,5 +115,24 @@ class ReceiptControllerTest {
 
         mockMvc.perform(delete("/api/purchases/1/receipt"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void uploadImageReturnsReceiptForCurrentUsersPurchase() throws Exception {
+        Receipt receipt = new Receipt(1L, TEST_USER_ID, 1L, "receipt.png", LocalDate.of(2026, 6, 15));
+        receipt.setImageData(new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0});
+        receipt.setImageContentType("image/png");
+        receipt.setImageFileName("receipt.png");
+        when(receiptService.uploadImage(eq(TEST_USER_ID), eq(1L), any(), eq("Store invoice"), eq(LocalDate.of(2026, 6, 15))))
+                .thenReturn(receipt);
+
+        MockMultipartFile image = new MockMultipartFile("image", "receipt.png", "image/png",
+                new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0});
+        mockMvc.perform(multipart("/api/purchases/1/receipt/image")
+                        .file(image)
+                        .param("receiptDate", "2026-06-15")
+                        .param("receiptReference", "Store invoice"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.uploadedImage").value(true));
     }
 }

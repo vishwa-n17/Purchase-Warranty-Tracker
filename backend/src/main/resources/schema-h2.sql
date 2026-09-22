@@ -56,6 +56,9 @@ CREATE TABLE IF NOT EXISTS receipts (
     purchase_id BIGINT NOT NULL UNIQUE,
     receipt_file_path VARCHAR(500) NOT NULL,
     receipt_date DATE NOT NULL,
+    image_file_name VARCHAR(150),
+    image_content_type VARCHAR(50),
+    image_data BLOB,
     CONSTRAINT fk_receipts_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_receipts_purchase FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -73,3 +76,8 @@ CREATE TABLE IF NOT EXISTS service_records (
     CONSTRAINT fk_service_records_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_service_records_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- Supports existing local H2 databases created before receipt-image storage was added.
+ALTER TABLE receipts ADD COLUMN IF NOT EXISTS image_file_name VARCHAR(150);
+ALTER TABLE receipts ADD COLUMN IF NOT EXISTS image_content_type VARCHAR(50);
+ALTER TABLE receipts ADD COLUMN IF NOT EXISTS image_data BLOB;

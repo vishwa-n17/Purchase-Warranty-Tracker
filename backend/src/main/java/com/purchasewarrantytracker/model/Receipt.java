@@ -1,5 +1,6 @@
 package com.purchasewarrantytracker.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -15,6 +16,12 @@ public class Receipt {
     @NotBlank(message = "Receipt file path is required")
     @Size(max = 500, message = "Receipt file path must be at most 500 characters")
     private String receiptFilePath;
+
+    private String imageFileName;
+    private String imageContentType;
+
+    @JsonIgnore
+    private byte[] imageData;
 
     @NotNull(message = "Receipt date is required")
     private LocalDate receiptDate;
@@ -42,6 +49,10 @@ public class Receipt {
         return receiptFilePath != null && !receiptFilePath.isBlank();
     }
 
+    public boolean hasUploadedImage() {
+        return imageData != null && imageData.length > 0;
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getUserId() { return userId; }
@@ -50,6 +61,13 @@ public class Receipt {
     public void setPurchaseId(Long purchaseId) { this.purchaseId = purchaseId; }
     public String getReceiptFilePath() { return receiptFilePath; }
     public void setReceiptFilePath(String receiptFilePath) { this.receiptFilePath = receiptFilePath; }
+    public String getImageFileName() { return imageFileName; }
+    public void setImageFileName(String imageFileName) { this.imageFileName = imageFileName; }
+    public String getImageContentType() { return imageContentType; }
+    public void setImageContentType(String imageContentType) { this.imageContentType = imageContentType; }
+    @JsonIgnore
+    public byte[] getImageData() { return imageData; }
+    public void setImageData(byte[] imageData) { this.imageData = imageData; }
     public LocalDate getReceiptDate() { return receiptDate; }
     public void setReceiptDate(LocalDate receiptDate) { this.receiptDate = receiptDate; }
 }

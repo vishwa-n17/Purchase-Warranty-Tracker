@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -41,6 +42,11 @@ public class GlobalExceptionHandler {
             if (safeMessage == null || safeMessage.isBlank()) safeMessage = "Invalid request data";
         }
         return error(HttpStatus.BAD_REQUEST, safeMessage);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleUploadTooLarge(MaxUploadSizeExceededException exception) {
+        return error(HttpStatus.BAD_REQUEST, "Receipt images must be 5 MB or smaller");
     }
 
     @ExceptionHandler(DataAccessException.class)
