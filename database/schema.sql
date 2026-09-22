@@ -48,6 +48,9 @@ CREATE TABLE IF NOT EXISTS receipts (
     purchase_id BIGINT UNSIGNED NOT NULL UNIQUE,
     receipt_file_path VARCHAR(500) NOT NULL,
     receipt_date DATE NOT NULL,
+    image_file_name VARCHAR(150) NULL,
+    image_content_type VARCHAR(50) NULL,
+    image_data LONGBLOB NULL,
     CONSTRAINT fk_receipts_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_receipts_purchase FOREIGN KEY (purchase_id) REFERENCES purchases(id)
         ON DELETE CASCADE
@@ -86,3 +89,8 @@ CREATE TABLE IF NOT EXISTS service_records (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB;
+
+-- For an existing MySQL database, run these once to add receipt-image storage.
+ALTER TABLE receipts ADD COLUMN IF NOT EXISTS image_file_name VARCHAR(150) NULL;
+ALTER TABLE receipts ADD COLUMN IF NOT EXISTS image_content_type VARCHAR(50) NULL;
+ALTER TABLE receipts ADD COLUMN IF NOT EXISTS image_data LONGBLOB NULL;

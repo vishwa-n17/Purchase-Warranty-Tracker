@@ -930,9 +930,11 @@ img {
 
 .input-icon {
     position: absolute;
-    left: 0.875rem;
+    left: 1rem;
     top: 50%;
     transform: translateY(-50%);
+    width: 1rem;
+    text-align: center;
     font-size: 0.9375rem;
     font-weight: 600;
     color: var(--color-text-tertiary);
@@ -940,8 +942,9 @@ img {
     z-index: 1;
 }
 
-.form-input--with-icon {
-    padding-left: 2rem;
+.form-input.form-input--with-icon {
+    /* Reserve a full clear area for the currency symbol and cursor. */
+    padding-left: 3rem;
 }
 
 /* ===== Enhanced Data Table ===== */

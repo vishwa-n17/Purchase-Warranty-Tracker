@@ -12,14 +12,18 @@ const receiptMessageEl = document.getElementById("receipt-message");
 const receiptPurchaseInfo = document.getElementById("receipt-purchase-info");
 const receiptPurchaseIdInput = document.getElementById("receipt-purchase-id");
 const receiptFilePathInput = document.getElementById("receipt-file-path");
+const receiptImageInput = document.getElementById("receipt-image");
 const receiptDateInput = document.getElementById("receipt-date");
 const saveReceiptButton = document.getElementById("save-receipt-button");
+const viewReceiptImageButton = document.getElementById("view-receipt-image-button");
+const downloadReceiptImageButton = document.getElementById("download-receipt-image-button");
 const deleteReceiptButton = document.getElementById("delete-receipt-button");
 const closeReceiptButton = document.getElementById("close-receipt-button");
 
 let productsCache = [];
 let productsMap = new Map();
 let currentReceiptExists = false;
+let currentReceiptHasImage = false;
 
 function showMessage(text, isError = false) {
     messageEl.textContent = text;
@@ -264,25 +268,36 @@ async function openReceiptSection(purchase) {
             currentReceiptExists = true;
             receiptFilePathInput.value = receipt.receiptFilePath;
             receiptDateInput.value = receipt.receiptDate;
+            currentReceiptHasImage = receipt.uploadedImage === true;
+            receiptImageInput.required = !currentReceiptHasImage;
             saveReceiptButton.textContent = "Update receipt";
             deleteReceiptButton.style.display = "inline-flex";
-            showReceiptMessage("Receipt found for this purchase.");
+            viewReceiptImageButton.style.display = currentReceiptHasImage ? "inline-flex" : "none";
+            downloadReceiptImageButton.style.display = currentReceiptHasImage ? "inline-flex" : "none";
+            showReceiptMessage(currentReceiptHasImage ? "Receipt image found for this purchase." : "Receipt found. You can add an image below.");
         } else if (response.status === 404) {
             currentReceiptExists = false;
+            currentReceiptHasImage = false;
             receiptFilePathInput.value = "";
             receiptDateInput.value = purchase.purchaseDate || new Date().toISOString().split("T")[0];
+            receiptImageInput.required = true;
             saveReceiptButton.textContent = "Attach receipt";
             deleteReceiptButton.style.display = "none";
+            viewReceiptImageButton.style.display = "none";
+            downloadReceiptImageButton.style.display = "none";
             showReceiptMessage("No receipt currently attached to this purchase. You can add one below.");
         } else {
             throw new Error(await getErrorMessage(response));
         }
     } catch (error) {
         currentReceiptExists = false;
+        currentReceiptHasImage = false;
         receiptFilePathInput.value = "";
         receiptDateInput.value = purchase.purchaseDate || "";
         saveReceiptButton.textContent = "Attach receipt";
         deleteReceiptButton.style.display = "none";
+        viewReceiptImageButton.style.display = "none";
+        downloadReceiptImageButton.style.display = "none";
         showReceiptMessage("Could not check receipt status. Please try again.", true);
         console.error("Receipt check error:", error);
     }
@@ -293,6 +308,7 @@ function closeReceiptSection() {
     receiptForm.reset();
     receiptPurchaseIdInput.value = "";
     currentReceiptExists = false;
+    currentReceiptHasImage = false;
 }
 
 receiptForm.addEventListener("submit", async (event) => {
@@ -300,28 +316,45 @@ receiptForm.addEventListener("submit", async (event) => {
     const purchaseId = receiptPurchaseIdInput.value;
     if (!purchaseId) return;
 
-    const payload = {
-        receiptFilePath: receiptFilePathInput.value.trim(),
-        receiptDate: receiptDateInput.value
-    };
-
-    const method = currentReceiptExists ? "PUT" : "POST";
-    const url = `${purchasesApiUrl}/${purchaseId}/receipt`;
+    const image = receiptImageInput.files[0];
+    if (image && (!['image/jpeg', 'image/png', 'image/webp'].includes(image.type) || image.size > 5 * 1024 * 1024)) {
+        showReceiptMessage("Choose a JPG, PNG, or WebP image no larger than 5 MB.", true);
+        return;
+    }
+    if (!image && !currentReceiptExists) {
+        showReceiptMessage("Choose a receipt image to upload.", true);
+        return;
+    }
 
     try {
-        const response = await fetch(url, {
-            method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-            credentials: "include"
-        });
+        let response;
+        if (image) {
+            const formData = new FormData();
+            formData.append("image", image);
+            formData.append("receiptDate", receiptDateInput.value);
+            formData.append("receiptReference", receiptFilePathInput.value.trim());
+            response = await fetch(`${purchasesApiUrl}/${purchaseId}/receipt/image`, {
+                method: "POST", body: formData, credentials: "include"
+            });
+        } else {
+            const payload = { receiptFilePath: receiptFilePathInput.value.trim(), receiptDate: receiptDateInput.value };
+            response = await fetch(`${purchasesApiUrl}/${purchaseId}/receipt`, {
+                method: "PUT", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload), credentials: "include"
+            });
+        }
 
         if (!response.ok) throw new Error(await getErrorMessage(response));
 
         currentReceiptExists = true;
+        currentReceiptHasImage = image ? true : currentReceiptHasImage;
+        receiptImageInput.value = "";
+        receiptImageInput.required = !currentReceiptHasImage;
         saveReceiptButton.textContent = "Update receipt";
         deleteReceiptButton.style.display = "inline-flex";
-        showReceiptMessage(`Receipt ${method === "PUT" ? "updated" : "attached"} successfully.`);
+        viewReceiptImageButton.style.display = currentReceiptHasImage ? "inline-flex" : "none";
+        downloadReceiptImageButton.style.display = currentReceiptHasImage ? "inline-flex" : "none";
+        showReceiptMessage(`Receipt ${image ? "image uploaded" : "updated"} successfully.`);
         showMessage(`Receipt saved for purchase #${purchaseId}.`);
     } catch (error) {
         showReceiptMessage("Could not save the receipt. Please try again.", true);
@@ -343,9 +376,14 @@ deleteReceiptButton.addEventListener("click", async () => {
         if (!response.ok) throw new Error(await getErrorMessage(response));
 
         currentReceiptExists = false;
+        currentReceiptHasImage = false;
         receiptFilePathInput.value = "";
+        receiptImageInput.value = "";
+        receiptImageInput.required = true;
         saveReceiptButton.textContent = "Attach receipt";
         deleteReceiptButton.style.display = "none";
+        viewReceiptImageButton.style.display = "none";
+        downloadReceiptImageButton.style.display = "none";
         showReceiptMessage("Receipt deleted successfully.");
         showMessage(`Receipt deleted for purchase #${purchaseId}.`);
     } catch (error) {
@@ -353,6 +391,31 @@ deleteReceiptButton.addEventListener("click", async () => {
         console.error("Receipt delete error:", error);
     }
 });
+
+async function openReceiptImage(download) {
+    const purchaseId = receiptPurchaseIdInput.value;
+    if (!purchaseId) return;
+    try {
+        const response = await fetch(`${purchasesApiUrl}/${purchaseId}/receipt/image?download=${download}`, { credentials: "include" });
+        if (!response.ok) throw new Error(await getErrorMessage(response));
+        const imageUrl = URL.createObjectURL(await response.blob());
+        if (download) {
+            const link = document.createElement("a");
+            link.href = imageUrl;
+            link.download = "receipt-image";
+            link.click();
+        } else {
+            window.open(imageUrl, "_blank", "noopener");
+        }
+        window.setTimeout(() => URL.revokeObjectURL(imageUrl), 60000);
+    } catch (error) {
+        showReceiptMessage("Could not open the receipt image. Please try again.", true);
+        console.error("Receipt image load error:", error);
+    }
+}
+
+viewReceiptImageButton.addEventListener("click", () => openReceiptImage(false));
+downloadReceiptImageButton.addEventListener("click", () => openReceiptImage(true));
 
 document.getElementById("refresh-button").addEventListener("click", () => {
     loadProducts();

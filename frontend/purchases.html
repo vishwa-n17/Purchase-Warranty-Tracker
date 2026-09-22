@@ -209,16 +209,23 @@
                         <input id="receipt-purchase-id" type="hidden">
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="form-label" for="receipt-file-path">Receipt file path / reference</label>
-                                <input id="receipt-file-path" class="form-input" required maxlength="500" placeholder="e.g. receipts/2026/invoice.pdf">
+                                <label class="form-label" for="receipt-image">Receipt image</label>
+                                <input id="receipt-image" type="file" class="form-input" accept="image/jpeg,image/png,image/webp">
+                                <small class="text-muted">JPG, PNG, or WebP, up to 5 MB. Selecting a new image replaces the current one.</small>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="receipt-date">Receipt date</label>
                                 <input id="receipt-date" type="date" class="form-input" required>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label class="form-label" for="receipt-file-path">Receipt reference (optional)</label>
+                            <input id="receipt-file-path" class="form-input" maxlength="500" placeholder="e.g. Store invoice #1234">
+                        </div>
                         <div class="form-actions">
                             <button type="submit" id="save-receipt-button" class="btn btn-primary">Save receipt</button>
+                            <button type="button" id="view-receipt-image-button" class="btn btn-secondary" style="display: none;">View image</button>
+                            <button type="button" id="download-receipt-image-button" class="btn btn-secondary" style="display: none;">Download image</button>
                             <button type="button" id="delete-receipt-button" class="btn btn-danger" style="display: none;">Delete receipt</button>
                         </div>
                     </form>
